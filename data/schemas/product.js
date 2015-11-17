@@ -28,6 +28,7 @@ var MemberSchema = new mongoose.Schema({
 		"detail":Array,/*详情*/
 		"canChange":String,/*是否可转让*/
 		"com":Array,
-		"member":Array
+		"member":Array,
+		"shopId":String/*商户Id*/
 	})
 module.exports = MemberSchema;

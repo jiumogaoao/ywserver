@@ -1,14 +1,18 @@
 var mongoose = require('mongoose');
 var MemberSchema = new mongoose.Schema({
 		"id":String,/*id*/
-		"productId":String,/*商品id*/
+		"product":Array,/*商品*/
 		"userId":String,/*用户id*/
+		"shopId":String,/*商户Id*/
 		"startTime":Number,/*购买时间*/
-		"endTime":Number,/*退出时间*/
-		"buyPrice":Number,/*买入价*/
-		"sellPrice":Number,/*卖出价*/
-		"count":Number,/*数量*/
+		"shopName":String,/*商家名*/
 		"name":String,/*用户名*/
-		"phone":String/*用户手机号*/
+		"phone":String,/*用户手机号*/
+		"state":Number,/*0没支付,1已支付,2没发货,3已发货,4已收货,5已评价*/
+		"logistics":String,/*物流*/
+		"logNumber":String,/*物流单号*/
+		"star":Number,/*评分*/
+		"com":String,/*评价*/
+		"comTime":Number/*评价时间*/
 	})
 module.exports = MemberSchema;

@@ -20,7 +20,7 @@ var app = require('./server')
 	  cardBind : require('./cardBind')
    }
 /**********************************************************************************/
-   var dbURL="mongodb://127.0.0.1:27017/xingzhong"
+   var dbURL="mongodb://127.0.0.1:27017/xiaoyiwo"
    global.db = require("mongoose").connect(dbURL);
    global.data_mg = {}
       data_mg.admin = require('./data/models/admin');//管理员表
