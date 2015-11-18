@@ -8,7 +8,7 @@ var MemberSchema = new mongoose.Schema({
 		"shopName":String,/*商家名*/
 		"name":String,/*用户名*/
 		"phone":String,/*用户手机号*/
-		"state":Number,/*0没支付,1已支付,2没发货,3已发货,4已收货,5已评价*/
+		"state":Number,/*0没支付,1已支付,2没发货,3已发货,4已收货,5已评价,6已取消*/
 		"logistics":String,/*物流*/
 		"logNumber":String,/*物流单号*/
 		"star":Number,/*评分*/

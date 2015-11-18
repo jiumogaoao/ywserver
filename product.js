@@ -77,8 +77,11 @@ function add(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-	/*if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){*/
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&(tokenArry[data.data.tk].user.type==2||tokenArry[data.data.tk].user.type==3)){
 		data.data.id=uuid();
+		data.data.member=[];
+		data.data.shopId=tokenArry[data.data.tk].user.id;
+		data.data.star=0;
 		var newProduct=new data_mg.product(data.data);
 	newProduct.save(function(err){
 		if(err){console.log(err)
@@ -99,11 +102,11 @@ function add(socket,data,fn){
 					})
 				}
 		})
-		/*}else{
+		}else{
 		result.success=false;
 				result.message="登陆信息超时,或不是管理员帐号";
 				returnFn();
-		}*/
+		}
 	
 		
 };
@@ -128,10 +131,15 @@ function edit(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-	/*
-	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){*/
+	
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&(tokenArry[data.data.tk].user.type==2||tokenArry[data.data.tk].user.type==3)){
 			console.log("更新产品")
-	data_mg.product.update({"id":data.data.id},{$set:data.data},{},function(err){
+			var editId=data.data.id;
+			delete data.data.id
+			delete data.data.member
+			delete data.data.shopId
+			delete data.data.star;
+	data_mg.product.update({"id":editId},{$set:data.data},{},function(err){
 		if(err){console.log(err)
 			result.success=false;
 			result.message="修改产品失败";
@@ -149,11 +157,11 @@ function edit(socket,data,fn){
 					})
 				}
 		})
-		/*}else{
+		}else{
 		result.success=false;
 				result.message="登陆信息超时,或不是管理员帐号";
 				returnFn();
-		}	*/
+		}	
 	
 		
 };
@@ -178,7 +186,7 @@ function remove(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 		}
-	/*if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){*/
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&(tokenArry[data.data.tk].user.type==2||tokenArry[data.data.tk].user.type==3)){
 	var lock=1;
 	var callbackCount=0;
 	var errSend=1;
@@ -242,11 +250,11 @@ function remove(socket,data,fn){
 		
 				
 				
-		/*}else{
+		}else{
 		result.success=false;
 				result.message="登陆信息超时,或不是管理员帐号";
 				returnFn();
-		}*/
+		}
 	
 	
 };

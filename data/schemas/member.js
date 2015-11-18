@@ -14,6 +14,9 @@ var MemberSchema = new mongoose.Schema({
 		"ip":String,/*当前登录ip*/
 		"balance":Number,
 		"redpacket":Number,
-		"shopList":Array
+		"shopList":Array,
+		"star":Number,
+		"shopName":String,
+		"visit":Number
 	})
 module.exports = MemberSchema;

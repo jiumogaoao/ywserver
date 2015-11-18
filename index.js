@@ -42,7 +42,7 @@ var app = require('./server')
 	  data_mg.cardBind = require('./data/models/cardBind');//银行卡表
 	  data_mg.redPacket = require('./data/models/redPacket');//红包表
 	  data_mg.count = require('./data/models/count');//数据统计表
-
+	  data_mg.company = require('./data/models/company');//企业信息表
 
 /***********************************************************************************/
 	global.uuid=function(){
@@ -82,7 +82,7 @@ var initDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==32){
+			if(totalCount==33){
 				showDB();
 				}
 			}
@@ -340,6 +340,11 @@ var initDB=function(){
 			console.log("realNameTime init");
 			totalCheck();
 			});
+		var addCompanyT=new data_mg.updateTime({"parentKey":"company","childKey":0})
+		addCompanyT.save(function(){
+			console.log("companyTime init");
+			totalCheck();
+			});
 		var addCardBindT=new data_mg.updateTime({"parentKey":"cardBind","childKey":0})
 		addCardBindT.save(function(){
 			console.log("cardBindTime init");
@@ -356,7 +361,7 @@ var emptyDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==15){
+			if(totalCount==16){
 				initDB();
 				}
 			}
@@ -382,6 +387,10 @@ var emptyDB=function(){
 			});
 		data_mg.realName.remove({},function(){
 			console.log("realName empty");
+			totalCheck();
+			});
+		data_mg.company.remove({},function(){
+			console.log("company empty");
 			totalCheck();
 			});
 		data_mg.cardBind.remove({},function(){

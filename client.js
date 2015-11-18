@@ -308,7 +308,7 @@ function register(socket,data,fn){
 		var newUserId=uuid();
 	var newData={
 		"id":newUserId,/*id*/
-		"type":1,/*类型,1普通用户2管理用户*/
+		"type":(data.data.type==3)?3:1,/*类型,1普通用户2管理用户3商户*/
 		"userName":"",/*用户名*/
 		"dsc":"",/*简介*/
 		"image":"",/*头像*/
@@ -321,25 +321,12 @@ function register(socket,data,fn){
 		"ip":"",/*当前登录ip*/
 		"balance":0,
 		"redpacket":0,
-		"password":data.data.password/*密码*/
+		"password":data.data.password,/*密码*/
+		"shopList":[],/*购物车*/
+		"star":0,/*信用*/
+		"shopName":"",/*点名*/
+		"visit":0
 		}
-	//data.data={
-	//	"id":uuid(),/*id*/
-	//	"type":1,/*类型,1普通用户2管理用户*/
-	//	"userName":"用户名",/*用户名*/
-	//	"image":"http://",/*头像*/
-	//	"place":"地址",/*地址*/
-	//	"phone":"18239208903",/*手机*/
-	//	"email":"fhdj@email.com",/*邮箱*/
-	//	"name":"真实名",/*真实姓名*/
-	//	"contacts":"联系人",/*联系人*/
-	//	"contactsPhone":"2738948393",/*联系人电话*/
-	//	"record":"本科",/*学历*/
-	//	"university":"华农",/*毕业院校*/
-	//	"job":"这个职位",/*职位*/
-	//	"company":"公司",/*公司*/
-	//	"password":"123456"/*密码*/
-	//}
 	var result={
 		success:false,
 		code:0,
@@ -435,11 +422,39 @@ function register(socket,data,fn){
 											result.success=false;
 											returnFn();	
 											}else{
-												result.success=true;
+												/*********************************************************/
+												var newCompany=new data_mg.company({
+													"id":newUserId,/*id*/
+													"name":"",/*公司名*/
+													"place":"",/*地区*/
+													"phone":"",/*联系电话*/
+													"money":0,/*注册资金*/
+													"email":"",/*邮箱*/
+													"type":0,/*企业类型*/
+													"linkMan":"",/*联系人*/
+													"linkPhone":"",/*联系电话*/
+													"cardNumber":"",/*营业执照号*/
+													"state":1
+													});
+													newCompany.save(function(companyErr){
+														if(companyErr){
+															console.log(companyErr);
+															result.message="创建企业信息失败"
+															result.success=false;
+															returnFn();
+															}else{
+																data_mg.updateTime.update({"parentKey":"company"},{$set:{"childKey":new Date().getTime()}},{},function(errUpdate){
+																	if(errUpdate){
+																		console.log(errUpdate);
+																		result.message="更新企业信息失败"
+																		result.success=false;
+																		returnFn();
+																		}else{
+																			result.success=true;
 																result.code=1;
 																tokenArry[data.data.tk]={tk:data.data.tk,user:{
 		"id":newUserId,/*id*/
-		"type":1,/*类型,1普通用户2管理用户*/
+		"type":(data.data.type==3)?3:1,/*类型,1普通用户2管理用户3商户*/
 		"userName":"",/*用户名*/
 		"image":"",/*头像*/
 		"dsc":"",/*简介*/
@@ -451,7 +466,10 @@ function register(socket,data,fn){
 		"time":0,/*当前登录时间*/
 		"ip":"",/*当前登录ip*/
 		"balance":0,
-		"redpacket":0
+		"redpacket":0,/*密码*/
+		"shopList":[],/*购物车*/
+		"star":0,/*信用*/
+		"visit":0
 		}}
 																
 																if(data.data.introducer){
@@ -489,6 +507,12 @@ function register(socket,data,fn){
 																			});
 																	}	
 																	returnFn();	
+												
+																			}
+																	})
+																}
+														});
+												/*********************************************************/
 												}
 										})
 									}
@@ -1417,6 +1441,119 @@ function realEdit(socket,data,fn){
 		}else{
 			console.log("开始更新时间")
 			data_mg.updateTime.update({"parentKey":"realName"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
+				console.log("更新回调")
+				if(errA){
+					console.log(errA)
+					result.success=false;
+			result.message="更新用户信息失败";
+				}else{
+					console.log("修改成功")
+					result.success=true;
+					result.code=1
+				}
+				returnFn();
+			})
+		}
+	})
+		}else{
+		result.success=false;
+		result.message="登录超时,请重新登录";
+		returnFn();
+		}	
+};
+/************************************************************************************************/
+function companyGet(socket,data,fn){
+	console.log("client/companyGet");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={
+					code:0,
+		time:0,
+		data:[],
+		success:false,
+		message:""
+					};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_companyGet",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}	
+	}
+	//returnFn();
+	//return;
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
+		data_mg.updateTime.find({"parentKey":"company"},function(err,doc){
+		if(err){
+			result.success=false;
+			result.message="获取更新时间失败";
+			console.log(err);
+			returnFn();
+		}else{
+			console.log(doc)
+			if(doc&&doc.length&&doc[0].childKey>data.data.time){
+				result.code=1;
+				result.time=doc[0].childKey
+				data_mg.company.find({id:tokenArry[data.data.tk].user.id},function(errA,docA){
+					if(errA){
+						result.success=false;
+						result.message="获取项目列表失败";
+						console.log(errA);
+					}else{
+						result.success=true;
+						result.data=docA;
+					}
+					returnFn();
+				});
+			}else{
+				result.success=true;
+				result.code=2;
+				returnFn();
+			}
+		}
+	})
+		}else{
+		result.success=false;
+		result.message="未登录"
+		returnFn()
+		}
+};
+/******************************************************************************************/
+function companyEdit(socket,data,fn){
+	console.log("client/companyEdit");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_companyEdit",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+	}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
+		data_mg.company.update({"id":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(err){
+		console.log("更新回调")
+		if(err){
+			console.log(err)
+			result.success=false;
+			result.message="修改失败";
+			returnFn()
+		}else{
+			console.log("开始更新时间")
+			data_mg.updateTime.update({"parentKey":"company"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
 				console.log("更新回调")
 				if(errA){
 					console.log(errA)
