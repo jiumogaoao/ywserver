@@ -70,6 +70,77 @@ function add(socket,data,fn){
 			}else{
 				console.log("用户信息正确")
 				var restMoney=member.balance+member.redpacket;
+				var coverCount=0;
+				var coverArry=[];
+				var coverErr=1;
+				var coverErrSend=1;
+				var totalPrice=0;
+				function coverCallBack(){
+
+				}
+				function addProduct(i,pobject){
+					data_mg.product.findOne({id:pobject.id},function(findProductErr,product){
+						if(coverErr){
+							if(findProductErr){
+								coverErr=0;
+								console.log(findProductErr);
+								result.success=false;
+								result.message="获取商品信息失败";
+								if(coverErrSend){
+									coverErrSend=0;
+									returnFn();
+								}
+							}else{
+								if(product.model[pobject.modelId]){
+									if(product.model[pobject.modelId].count>=pobject.count){
+										totalPrice+=product.model[pobject.modelId].price*pobject.count;
+										coverArry[i]={id:product.id,name:product.title,modelId:pobject.modelId,price:product.model[pobject.modelId].price,count:pobject.count,modelName:product.model[pobject.modelId].name,modelIcon:product.model[pobject.modelId].icon}
+										product.model[pobject.modelId].count-=pobject.count;
+										data_mg.product.update({id:pobject.id},{$set:{model:product.model}},{}function(modelCountErr){
+											if(modelCountErr){
+												console.log(modelCountErr);
+												coverErr=0;
+												result.success=false;
+												result.message="获取商品信息失败";
+												if(coverErrSend){
+													coverErrSend=0;
+													returnFn();
+												}
+											}else{
+												coverCallBack();
+											}
+										})
+									}else{
+										coverErr=0;
+										console.log("库存不足");
+										result.success=false;
+										result.message="库存不足";
+										if(coverErrSend){
+											coverErrSend=0;
+											returnFn();
+										}
+									}
+								}else{
+									coverErr=0;
+									console.log("没该类型");
+									result.success=false;
+									result.message="获取商品类型失败";
+									if(coverErrSend){
+										coverErrSend=0;
+										returnFn();
+									}
+								}
+								
+
+							}
+						}
+						
+
+					})
+				}
+				for (var i=0;i<data.data.product.length;i++){
+					addProduct(i,data.data.product[i]);
+				}
 				var totalPay=data.data.buyPrice*data.data.count;
 				var moneySet={balance:0,redpacket:0}
 				if(restMoney>=totalPay){console.log("余额足够")

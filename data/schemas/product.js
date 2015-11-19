@@ -3,7 +3,7 @@ var MemberSchema = new mongoose.Schema({
 		"id":String,/*id*/
 		"title":String,/*标题*/
 		"image":Array,/*图片*/
-		"model":Array,/*型号{id:"",name:"",icon:"",price:0,count:0}*/
+		"model":{},/*型号id:{id:"",name:"",icon:"",price:0,count:0}*/
 		"stratTime":Number,/*上架时间*/
 		"endTime":Number,/*下架时间*/
 		"dsc":String,//简介
