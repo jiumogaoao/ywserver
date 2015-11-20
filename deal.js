@@ -76,7 +76,48 @@ function add(socket,data,fn){
 				var coverErrSend=1;
 				var totalPrice=0;
 				function coverCallBack(){
-
+					coverCount++;
+					if(coverCount==data.data.product.length){
+						data_mg.updateTime.update({"parentKey":"product"},{$set:{"childKey":new Date().getTime()}},{},function(productTimeErr){
+							if(productTimeErr){
+								console.log(productTimeErr);
+								result.success=false;
+								result.message="产品时间更新失败";
+								returnFn();
+								}else{
+									var newdeal=new data_mg.deal({
+							"id":uuid(),/*id*/
+							"product":coverArry,/*商品*/
+							"userId":data.data.userId,/*用户id*/
+							"shopId":data.data.shopId,/*商户Id*/
+							"startTime":new Date().getTime(),/*购买时间*/
+							"shopName":data.data.shopName,/*商家名*/
+							"name":tokenArry[data.data.tk].user.userName,/*用户名*/
+							"phone":tokenArry[data.data.tk].user.phone,/*用户手机号*/
+							"state":0,/*0没支付,1已支付,2没发货,3已发货,4已收货,5已评价,6已取消*/
+							"logistics":"",/*物流*/
+							"logNumber":"",/*物流单号*/
+							"star":0,/*评分*/
+							"com":"",/*评价*/
+							"comTime":0,/*评价时间*/
+							"totalPrice":totalPrice/*总价*/
+						})
+						newdeal.save(function(dealErr){
+							if(dealErr){
+								console.log(dealErr);
+								result.success=false;
+								result.message="添加交易记录失败";
+								returnFn();
+							}else{
+								result.success=true;
+								result.code=1;
+								returnFn();
+							}
+						});
+									}
+							})
+						
+					}
 				}
 				function addProduct(i,pobject){
 					data_mg.product.findOne({id:pobject.id},function(findProductErr,product){
@@ -91,11 +132,16 @@ function add(socket,data,fn){
 									returnFn();
 								}
 							}else{
+								console.log("有该商品")
 								if(product.model[pobject.modelId]){
+									console.log("有该类型")
 									if(product.model[pobject.modelId].count>=pobject.count){
+										console.log("库存足够")
 										totalPrice+=product.model[pobject.modelId].price*pobject.count;
+										console.log("添加到替换列表")
 										coverArry[i]={id:product.id,name:product.title,modelId:pobject.modelId,price:product.model[pobject.modelId].price,count:pobject.count,modelName:product.model[pobject.modelId].name,modelIcon:product.model[pobject.modelId].icon}
 										product.model[pobject.modelId].count-=pobject.count;
+										console.log("减库存")
 										data_mg.product.update({id:pobject.id},{$set:{model:product.model}},{}function(modelCountErr){
 											if(modelCountErr){
 												console.log(modelCountErr);
@@ -107,6 +153,7 @@ function add(socket,data,fn){
 													returnFn();
 												}
 											}else{
+												console.log("减库存成功");
 												coverCallBack();
 											}
 										})
@@ -141,90 +188,9 @@ function add(socket,data,fn){
 				for (var i=0;i<data.data.product.length;i++){
 					addProduct(i,data.data.product[i]);
 				}
-				var totalPay=data.data.buyPrice*data.data.count;
-				var moneySet={balance:0,redpacket:0}
-				if(restMoney>=totalPay){console.log("余额足够")
-					if(member.redpacket>=totalPay){
-						moneySet={balance:member.balance,redpacket:(member.redpacket-totalPay)}
-					}else{
-						moneySet={balance:member.balance+member.redpacket-totalPay,redpacket:0}
-					}
-					data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$set:moneySet},{},function(errA){
-						if(errA){
-							consol.log(errA);
-							result.success=false;
-							result.message="修改金额失败";
-							returnFn();
-						}else{console.log("修改余额成功")
-							data_mg.updateTime.update({parentKey:"client"},{$set:{childKey:new Date().getTime()}},{},function(errB){
-								if(errB){
-									console.log(errB);
-									result.success=false;
-									result.message="更新用户信息失败";
-									returnFn();
-								}else{console.log("更新余额时间成功")
-									/********************************************/
-									data.data.name=member.userName;
-									data.data.phone=member.phone;
-									var deal=new data_mg.deal(data.data);	
-									deal.save(function(errC){
-		if(errC){
-			console.log(errC)
-			result.success=false;
-			result.message="添加交易纪录失败";
-			returnFn();
-			}else{
-				console.log("开始修改product")
-				data_mg.product.findOne({id:data.data.productId},function(errD,product){
-					if(errD){
-						console.log(errD);
-						result.success=false;
-						result.message="没有该产品";
-						returnFn();
-						}else{console.log("有产品")
-							var payedCount=product.payedCount+data.data.count;
-							var payedMoney=product.payedMoney+(data.data.buyPrice*data.data.count);
-							var payedMember=product.payedMember+1;
-							data_mg.product.update({id:data.data.productId},{$set:{payedCount:payedCount,payedMoney:payedMoney,payedMember:payedMember}},{},function(errE){
-								if(errE){
-									console.log(errE);
-									result.success=false;
-									result.message="更新产品数量失败";
-									returnFn();
-									}else{
-										console.log("更新product时间")
-										var lastTime=new Date().getTime();
-										data_mg.updateTime.update({"parentKey":"product"},{$set:{"childKey":lastTime}},{},function(errF){
-											if(errF){
-												console.log(errF);
-												result.success=false;
-												result.message="更新产品时间失败";
-												}else{
-													result.time=lastTime;
-													result.success=true;
-													result.code=1;
-													}
-													returnFn();
-											})
-										}
-								})
-							}
-					})
-				}
-			
-		});
-									/********************************************/
-								}
-							})
-						}
-					})
-				}else{
-					console.log("余额不足");
-					result.success=false;
-					result.message="余额不足";
-					returnFn();
-				}
+
 			}
+			
 		})	
 		}else{
 				result.success=false;
@@ -232,20 +198,22 @@ function add(socket,data,fn){
 				returnFn();
 				}		
 };
+
 /*****************************************************************************************************/
-function sell(socket,data,fn){
-	console.log("deal/sell");
+function cancel(socket,data,fn){
+	console.log("deal/cancel");
 	if(typeof(data.data)=="string"){
 		data.data=JSON.parse(data.data)
 		}
+	console.log(data.data)
 	var result={code:0,
 		time:0,
 		data:{},
 		success:false,
 		message:""};
-	var returnFn=function(){
+	var returnFN=function(){
 		if(socket){
-	 	socket.emit("deal_sell",result);
+	 	socket.emit("deal_list",result);
 	 }
 	 	else if(fn){
 	 		var returnString = JSON.stringify(result);
@@ -253,165 +221,156 @@ function sell(socket,data,fn){
 	 	}
 		}
 		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
-			
-			data_mg.deal.update({"id":data.data.id,"userId":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(err){
-			if(err){
-				console.log(err)
-				result.success=false;
-				result.message="修改失败";
-				returnFn();
+			data_mg.deal.$where('this.id == "'+data.data.id+'" && (this.userId == "'+tokenArry[data.data.tk].user.id+'" || this.shopId == "'+tokenArry[data.data.tk].user.id+'")').exec(function(err,doc){
+				if(err||doc.length==0){
+					console.log(err);
+					result.success=false;
+					result.message="该订单不存在";
+					returnFn();
 				}else{
-
-				data_mg.product.findOne({id:data.data.productId},function(errA,product){
-					if(errA){
-						console.log(errA)
-						result.success=false;
-						result.message="没有该产品";
-						returnFn();
-						}else{
-							var payedCount=product.payedCount-data.data.count;
-							var payed=product.payedMoney-(data.data.buyPrice*data.data.count);
-							data_mg.product.update({id:data.data.productId},{$set:{payedCount:payedCount,payedMoney:payed}},{},function(errB){
-								
-								if(errB){
-									console.log(errB);
-									result.success=false;
-									result.message="修改产品出错";
-									returnFn();
-									}else{
-										console.log("更新product时间")
-										data_mg.updateTime.update({"parentKey":"product"},{$set:{"childKey":new Date().getTime()}},{},function(errC){
-											if(errC){
-												console.log(errC);
-												result.success=false;
-												result.message="更新产品出错";
-												returnFn();
-												}else{
-													data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$inc:{balance:product.price*data.data.count}},{},function(errD){
-														if(errD){
-															console.log(errD);
-															result.success=false;
-															result.message="余额修改错误";
-														}else{
-															result.success=true;
-													result.code=1;
-														}
-														returnFn();
-													})
-													/*****************************/
-													
-													}
-													
-											})
-										}
-								})
+					doc=doc[0];
+					if(doc.state==0){
+						data_mg.deal.update({id:data.data.id},{$set:{state:5}},{},function(errDeal){
+							if(errDeal){
+								console.log(errDeal);
+								result.success=false;
+								result.message="该订单不存在";
+								returnFn();
+							}else{
+								result.success=true;
+								result.code=1;
+								returnFn();
 							}
-					})
-
-					
+						});
+					}else{
+						console.log("订单已支付，无法取消");
+						result.success=false;
+						result.message="订单已支付，无法取消";
+						returnFn();
 					}
-					
-			})
+				}
+			});
 			}else{
 				result.success=false;
 				result.message="登陆信息超时";
 				returnFn();
 				}
-		
-		
-};
+	}
 /*****************************************************************************************************/
-function change(socket,data,fn){
-	console.log("deal/change");
+function pay(socket,data,fn){
+	console.log("deal/pay");
 	if(typeof(data.data)=="string"){
 		data.data=JSON.parse(data.data)
 		}
+	console.log(data.data)
 	var result={code:0,
 		time:0,
 		data:{},
 		success:false,
 		message:""};
-	var returnFn=function(){
+	var returnFN=function(){
 		if(socket){
-	 	socket.emit("deal_change",result);
+	 	socket.emit("deal_pay",result);
 	 }
 	 	else if(fn){
 	 		var returnString = JSON.stringify(result);
 	 		fn(returnString);
 	 	}
 		}
-		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
-			data_mg.client.findOne({phone:data.data.phone},function(err,user){
-				if(err){
-					console.log(err);
-					result.success=false;
-					result.message="找不到被转让人";
-					returnFn();
-				}else{
-					data_mg.product.findOne({id:data.data.productId},function(errA,product){
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+		data_mg.deal.findOne({id:data.data.id,userId:tokenArry[data.data.tk].user.id},function(dealErr,doc){
+			if(dealErr){
+				console.log(dealErr);
+				result.success=false;
+				result.message="该订单不存在";
+				returnFn();
+			}else{
+				if(doc.state==0){
+					data_mg.client.findOne({id:tokenArry[data.data.tk].user.id},function(userErr,user){
+						if(userErr){
+							console.log(userErr);
+							result.success=false;
+							result.message="用户信息获取错误";
+							returnFn();
+						}else{
+							var restMoney=user.balance+user.redpacket;
+							if(restMoney>=doc.totalPrice){
+								var moneySet=0;
+					if(member.redpacket>=doc.totalPrice){
+						moneySet={balance:member.balance,redpacket:(member.redpacket-doc.totalPrice)}
+					}else{
+						moneySet={balance:member.balance+member.redpacket-doc.totalPrice,redpacket:0}
+					}
+					data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$set:moneySet},{},function(errA){
 						if(errA){
 							console.log(errA);
 							result.success=false;
-							result.message="找不到产品";
+							result.message="扣费错误";
 							returnFn();
 						}else{
-							data_mg.client.findOne({id:tokenArry[data.data.tk].user.id},function(errB,userA){
-								if(errB){
-									console.log(errB);
+							data_mg.deal.update({id:data.data.id},{$set:{state:1}},{},function(errDeal){
+								if(errDeal){
+									console.log(errDeal)
 									result.success=false;
-									result.message="获取用户信息失败";
+									result.message="订单状态修改错误";
 									returnFn();
 								}else{
-									if((userA.balance+userA.redpacket)<product.change*data.data.count||product.canChange=="0"){
-										console.log("余额不足");
-										result.success=false;
-										result.message="余额不足转让费用或产品不允许转让";
-										returnFn();
-									}else{
-										data_mg.client.update({id:userA.id},{$inc:{balance:(product.change*data.data.count>=userA.redpacket)?(userA.redpacket-(product.change*data.data.count)):0,redpacket:(product.change*data.data.count>=userA.redpacket)?(-userA.redpacket):(-product.change*data.data.count)}},function(errC){
-											if(errC){
-												console.log(errB);
-												result.success=false;
-												result.message="扣取转让费错误";
-												returnFn();
-											}else{
-												data.data.userId=user.id;
-												/**********************/
-												data.data.name=user.userName;
-												data.data.phone=user.phone;
-												data_mg.deal.update({"id":data.data.id,"userId":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(errC){
-												if(errC){
-													console.log(errC)
-													result.success=false;
-													result.message="修改失败";
-													}else{
-														result.success=true;
-														result.code=1
-														}
-														returnFn();
-												})
-												/**********************/
-											}
-										})
-									}
+									result.success=true;
+									result.code=1;
+									returnFn();
 								}
-							})
-							
-							
+							});
 						}
-					})
-					
+					});
+				}else{
+						console.log("余额不足");
+						result.success=false;
+						result.message="余额不足";
+						returnFn();
+					}
+						}
+					});
+				}else{
+					console.log("订单状态不正确");
+					result.success=false;
+					result.message="订单状态不正确";
+					returnFn();
 				}
-			})
-			
-			}else{
-				result.success=false;
-				result.message="登陆信息超时";
-				returnFn();
-				}
-		
-		
-};
+			}
+		});
+	}else{
+		result.success=false;
+		result.message="登陆信息超时";
+		returnFn();
+	}
+}
+/*****************************************************************************************************/
+function send(socket,data,fn){
+	console.log("deal/send");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFN=function(){
+		if(socket){
+	 	socket.emit("deal_send",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){}else{
+		result.success=false;
+		result.message="登陆信息超时";
+		returnFn();
+	}
+}
 /*****************************************************************************************************/
 function list(socket,data,fn){
 	console.log("deal/list");
@@ -456,7 +415,7 @@ function list(socket,data,fn){
 
 exports.get=get;
 exports.add=add;
-exports.change=change;
-exports.sell=sell;
+exports.cancel=cancel;
+exports.pay=pay;
 exports.list=list;
 

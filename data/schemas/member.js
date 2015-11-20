@@ -12,11 +12,11 @@ var MemberSchema = new mongoose.Schema({
 		"lastIp":String,/*上次登录IP*/
 		"time":Number,/*当前登录时间*/
 		"ip":String,/*当前登录ip*/
-		"balance":Number,
-		"redpacket":Number,
-		"shopList":Array,
-		"star":Number,
-		"shopName":String,
-		"visit":Number
+		"balance":Number,/*余额*/
+		"redpacket":Number,/*红包*/
+		"shopList":Array,/*购物车*/
+		"star":Number,/*好评数*/
+		"shopName":String,/*店名*/
+		"visit":Number/*人气*/
 	})
 module.exports = MemberSchema;
