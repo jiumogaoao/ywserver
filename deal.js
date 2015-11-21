@@ -365,10 +365,308 @@ function send(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){}else{
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+		if(data.data.logistics&&data.data.logNumber){
+			data_mg.deal.findOne({id:data.data.id,shopId:tokenArry[data.data.tk].user.id},function(dealErr,deal){
+				if(dealErr){
+					console.log(dealErr)
+					result.success=false;
+					result.message="该订单不存在";
+					returnFn();
+				}else{
+					if(deal.state==1){
+						data_mg.deal.update({id:data.data.id,shopId:tokenArry[data.data.tk].user.id},{$set:{logistics:data.data.logistics,logNumber:data.data.logNumber,state:2}},{},function(errDeal){
+							if(errDeal){
+								console.log(errDeal)
+								result.success=false;
+								result.message="修改订单状态错误";
+								returnFn();
+							}else{
+								result.success=true;
+								result.code=1;
+								returnFn();
+							}
+				});
+					}else{
+						console.log("状态错误")
+						result.success=false;
+						result.message="该订单状态错误";
+						returnFn();
+					}
+				}
+			});		
+		}else{
+			console.log("快递信息不全")
+			result.success=false;
+			result.message="快递信息不全";
+			returnFn();
+		}
+	}else{
+		console.log("登陆信息超时")
 		result.success=false;
 		result.message="登陆信息超时";
 		returnFn();
+	}
+}
+/*****************************************************************************************************/
+function confirm(socket,data,fn){
+	console.log("deal/confirm");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFN=function(){
+		if(socket){
+	 	socket.emit("deal_confirm",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+		data_mg.deal.findOne({id:data.data.id,userId:tokenArry[data.data.tk].user.id},function(dealErr,deal){
+			if(dealErr){
+				console.log(dealErr)
+				result.success=false;
+				result.message="该订单不存在";
+				returnFn();
+			}else{
+				if(deal.state==2){
+					data_mg.client_password.findOne({"parentKey":tokenArry[data.data.tk].user.id,
+		"childKey":data.data.password},function(passErr){
+						if(passErr){
+							console.log(passErr)
+							result.success=false;
+							result.message="密码错误";
+							returnFn();
+						}else{
+							data_mg.deal.update({id:data.data.id,userId:tokenArry[data.data.tk].user.id},{$set:{state:3}},{},function(stateErr){
+								if(stateErr){
+									console.log(stateErr);
+									result.success=false;
+									result.message="更改订单状态失败";
+									returnFn();
+								}else{
+									data_mg.client.update({id:deal.shopId},{$inc:{balance:deal.totalPrice}},{},function(shopErr){
+										if(shopErr){
+											console.log(shopErr);
+											result.success=false;
+											result.message="打款失败";
+											returnFn();
+										}else{
+											result.success=true;
+											result.code=1;
+											returnFn();
+										}
+									});
+								}
+							});
+						}
+					});
+				}else{
+					result.success=false;
+					result.message="订单状态不正确";
+					returnFn();
+				}
+			}
+		});
+	}else{
+		console.log("登陆信息超时")
+		result.success=false;
+		result.message="登陆信息超时";
+		returnFn();
+	}
+}
+/*****************************************************************************************************/
+function evaluate(socket,data,fn){
+	console.log("deal/evaluate");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFN=function(){
+		if(socket){
+	 	socket.emit("deal_evaluate",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+		data_mg.deal.findOne({id:data.data.id,userId:tokenArry[data.data.tk].user.id},function(dealErr,deal){
+			if(dealErr){
+				console.log(dealErr)
+				result.success=false;
+				result.message="该订单不存在";
+				returnFn();
+			}else{
+				if(deal.state==3){
+					data_mg.deal.update({id:data.data.id,userId:tokenArry[data.data.tk].user.id},{$set:{state:4,star:data.data.star||0,com:data.data.com||"",comTime:new Date().getTime()}},{},function(evalErr){
+						if(evalErr){
+							console.log(evalErr);
+							result.success=false;
+							result.message="提交评价失败";
+							returnFn();
+						}else{
+							data_mg.client.update({id:deal.shopId},{$inc:{star:data.data.star||0}},{},function(shopErr){
+								if(shopErr){
+								console.log(shopErr);
+								result.success=false;
+								result.message="修改商家积分失败";
+								returnFn();	
+							}else{
+								result.success=true;
+								result.code=1;
+								returnFn();	
+							}
+								
+							});
+						}
+					});
+				}else{
+					result.success=false;
+					result.message="订单状态不正确";
+					returnFn();
+				}
+			}
+		});
+	}else{
+		console.log("登陆信息超时")
+		result.success=false;
+		result.message="登陆信息超时";
+		returnFn();
+	}
+}
+/*****************************************************************************************************/
+function back(socket,data,fn){
+	console.log("deal/back");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFN=function(){
+		if(socket){
+	 	socket.emit("deal_back",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+		data_mg.deal.findOne({id:data.data.id,userId:tokenArry[data.data.tk].user.id},function(dealErr,deal){
+			if(dealErr){
+				console.log(dealErr)
+				result.success=false;
+				result.message="该订单不存在";
+				returnFn();
+			}else{
+				if(deal.state==1||deal.state==2){
+					data_mg.deal.update({id:data.data.id,userId:tokenArry[data.data.tk].user.id},{$set:{state:6}},{},function(backErr){
+						if(backErr){
+							console.log(backErr);
+							result.success=false;
+							result.message="修改订单状态错误";
+							returnFn();
+						}else{
+							result.success=true;
+							result.code=1;
+							returnFn();
+						}
+					})
+				}else{
+					result.success=false;
+					result.message="该订单状态错误";
+					returnFn();
+				}
+			}
+	})
+	}
+}
+/*****************************************************************************************************/
+function backPay(socket,data,fn){
+	console.log("deal/backPay");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFN=function(){
+		if(socket){
+	 	socket.emit("deal_backPay",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+		data_mg.deal.findOne({id:data.data.id,shopId:tokenArry[data.data.tk].user.id},function(dealErr,deal){
+			if(dealErr){
+				console.log(dealErr)
+				result.success=false;
+				result.message="该订单不存在";
+				returnFn();
+			}else{
+				if(deal.state==6){
+					data_mg.deal.update({id:data.data.id,shopId:tokenArry[data.data.tk].user.id},{$set:{state:5}},{},function(backErr){
+						if(backErr){
+							console.log(backErr);
+							result.success=false;
+							result.message="更改订单状态失败";
+							returnFn();
+						}else{
+							data_mg.client.update({id:deal.userId},{$inc:{balance:deal.totalPrice}},{},function(clientErr){
+								if(clientErr){
+									console.log(clientErr)
+									result.success=false;
+									result.message="退款失败";
+									returnFn();
+								}else{
+									data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(timeErr){
+										if(timeErr){
+											console.log(timeErr);
+											result.success=false;
+											result.message="更新用户时间失败";
+											returnFn();
+										}else{
+											result.success=true;
+											result.code=1;
+											returnFn();
+										}
+									});
+								}
+							})
+						}
+					})
+				}else{
+					result.success=false;
+					result.message="该订单状态错误";
+					returnFn();
+				}
+			}
+	})
 	}
 }
 /*****************************************************************************************************/
@@ -417,5 +715,10 @@ exports.get=get;
 exports.add=add;
 exports.cancel=cancel;
 exports.pay=pay;
+exports.send=send;
+exports.confirm=confirm;
+exports.evaluate=evaluate;
+exports.back=back;
+exports.backPay=backPay;
 exports.list=list;
 
