@@ -15,9 +15,7 @@ var app = require('./server')
 	  config : require('./config'),
 	  obj : require('./obj'),
 	  type : require('./type'),
-	  com : require('./com'),
-	  realName : require('./realName'),
-	  cardBind : require('./cardBind')
+	  com : require('./com')
    }
 /**********************************************************************************/
    var dbURL="mongodb://127.0.0.1:27017/xiaoyiwo"
@@ -430,8 +428,8 @@ var emptyDB=function(){
 			totalCheck();
 			});
 }
-	emptyDB();
-	//showDB();
+	//emptyDB();
+	showDB();
 /***********************************************************************************/	
  	 var io = require('socket.io').listen(app.target)
 app.target.listen(8888);

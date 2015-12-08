@@ -541,7 +541,7 @@ function register(socket,data,fn){
 			}
 		}else{
 			result.success=false;
-			result.message="未获取验证码或验证买校验失败"
+			result.message="未获取验证码或验证码校验失败"
 			returnFn();
 		}
 	
@@ -737,6 +737,22 @@ function edit(socket,data,fn){
 	 	}
 	}
 	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
+		var setData={};
+		if(data.data.userName){
+			setData.userName=data.data.userName;
+		}
+		if(data.data.image){
+			setData.image=data.data.image;
+		}
+		if(data.data.dsc){
+			setData.dsc=data.data.dsc;
+		}
+		if(data.data.phone){
+			setData.phone=data.data.phone;
+		}
+		if(data.data.email){
+			setData.email=data.data.email;
+		}
 		data_mg.client.update({"id":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(err){
 		console.log("更新回调")
 		if(err){
@@ -756,11 +772,21 @@ function edit(socket,data,fn){
 					console.log("修改成功")
 					result.success=true;
 					result.code=1
-					tokenArry[data.data.tk].user.userName=data.data.userName,
-					tokenArry[data.data.tk].user.image=data.data.image,
-					tokenArry[data.data.tk].user.dsc=data.data.dsc,
-					tokenArry[data.data.tk].user.phone=data.data.phone,
+					if(data.data.userName){
+						tokenArry[data.data.tk].user.userName=data.data.userName;
+					}
+					if(data.data.image){
+						tokenArry[data.data.tk].user.image=data.data.image;
+					}
+					if(data.data.dsc){
+					tokenArry[data.data.tk].user.dsc=data.data.dsc;
+					}
+					if(data.data.phone){	
+					tokenArry[data.data.tk].user.phone=data.data.phone;
+					}
+					if(data.data.email){
 					tokenArry[data.data.tk].user.email=data.data.email
+					}
 				}
 				returnFn();
 			})
@@ -1127,7 +1153,7 @@ function getPhoneCode(socket,data,fn){
 					console.log(chunk)
 						result.code=1;
 						result.success=true;
-							result.data=code;
+							result.data.code=code;
 							console.log(code)
 							  returnFn()
 					});  
@@ -1431,7 +1457,35 @@ function realEdit(socket,data,fn){
 	 	}
 	}
 	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
-		data_mg.realName.update({"id":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(err){
+		var sendData={state:0}
+		if(data.data.name){
+			sendData.name=data.data.name;
+		}
+		if(data.data.sex){
+			sendData.sex=data.data.sex;
+		}
+		if(data.data.cardType){
+			sendData.cardType=data.data.cardType;
+		}
+		if(data.data.place){
+			sendData.place=data.data.place;
+		}
+		if(data.data.birthday){
+			sendData.birthday=data.data.birthday;
+		}
+		if(data.data.cardNumber){
+			sendData.cardNumber=data.data.cardNumber;
+		}
+		if(data.data.startTime){
+			sendData.startTime=data.data.startTime;
+		}
+		if(data.data.endTime){
+			sendData.endTime=data.data.endTime;
+		}
+		if(data.data.image){
+			sendData.image=data.data.image;
+		}
+		data_mg.realName.update({"id":tokenArry[data.data.tk].user.id},{$set:sendData},{},function(err){
 		console.log("更新回调")
 		if(err){
 			console.log(err)
@@ -1461,6 +1515,47 @@ function realEdit(socket,data,fn){
 		returnFn();
 		}	
 };
+/************************************************************************************************/
+function realCheck(socket,data,fn){
+	console.log("client/realCheck");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_realCheck",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+	}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
+		data_mg.realName.update({"id":data.data.id},{$set:{state:1}},{},function(err){
+			if(err){
+				console.log(err);
+				result.success=false;
+				result.code=0;
+				result.message="修改审核状态错误";
+				returnFn();
+			}else{
+				result.success=true;
+				returnFn();
+			}
+		});
+	}else{
+		result.success=false;
+		result.code=0;
+		result.message="未登录或不是管理员帐号";
+		returnFn();
+	}
+}
 /************************************************************************************************/
 function companyGet(socket,data,fn){
 	console.log("client/companyGet");
@@ -1657,7 +1752,20 @@ function cardEdit(socket,data,fn){
 	 	}
 	}
 	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
-		data_mg.cardBind.update({"id":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(err){
+		var sendData={state:0}
+		if(data.data.name){
+			sendData.name=data.data.name;
+		}
+		if(data.data.number){
+			sendData.number=data.data.number;
+		}
+		if(data.data.place){
+			sendData.place=data.data.place;
+		}
+		if(data.data.bank){
+			sendData.bank=data.data.bank;
+		}
+		data_mg.cardBind.update({"id":tokenArry[data.data.tk].user.id},{$set:sendData},{},function(err){
 		console.log("更新回调")
 		if(err){
 			console.log(err)
@@ -1687,6 +1795,47 @@ function cardEdit(socket,data,fn){
 		returnFn();
 		}	
 };
+/************************************************************************************************/
+function cardCheck(socket,data,fn){
+	console.log("client/cardCheck");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_cardCheck",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+	}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
+		data_mg.cardBind.update({"id":data.data.id},{$set:{state:1}},{},function(err){
+			if(err){
+				console.log(err);
+				result.success=false;
+				result.code=0;
+				result.message="修改审核状态错误";
+				returnFn();
+			}else{
+				result.success=true;
+				returnFn();
+			}
+		});
+	}else{
+		result.success=false;
+		result.code=0;
+		result.message="未登录或不是管理员帐号";
+		returnFn();
+	}
+}
 /**********************************************************************************/
 function accountIn(socket,data,fn){
 	console.log(data);
@@ -1976,8 +2125,10 @@ exports.accountOut=accountOut;
 exports.accountIn=accountIn;
 exports.cardEdit=cardEdit;
 exports.cardGet=cardGet;
+exports.cardCheck=cardCheck
 exports.realEdit=realEdit;
 exports.realGet=realGet;
+exports.realCheck=realCheck;
 exports.getSafeQusetion=getSafeQusetion;
 exports.setSafeQusetion=setSafeQusetion;
 exports.checkSafeQusetion=checkSafeQusetion;

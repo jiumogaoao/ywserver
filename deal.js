@@ -142,7 +142,7 @@ function add(socket,data,fn){
 										coverArry[i]={id:product.id,name:product.title,modelId:pobject.modelId,price:product.model[pobject.modelId].price,count:pobject.count,modelName:product.model[pobject.modelId].name,modelIcon:product.model[pobject.modelId].icon}
 										product.model[pobject.modelId].count-=pobject.count;
 										console.log("减库存")
-										data_mg.product.update({id:pobject.id},{$set:{model:product.model}},{}function(modelCountErr){
+										data_mg.product.update({id:pobject.id},{$set:{model:product.model}},{},function(modelCountErr){
 											if(modelCountErr){
 												console.log(modelCountErr);
 												coverErr=0;
