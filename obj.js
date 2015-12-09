@@ -62,7 +62,8 @@ function add(socket,data,fn){
 	console.log(data.data)
 	var adminData = {
 		"id":uuid(),/*id*/
-		"name":data.data.name/*项目名*/
+		"name":data.data.name,/*项目名*/
+		"parentId":data.data.parentId
 		}
 		
 	var result={
@@ -81,8 +82,8 @@ function add(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 	}
-	
-	var newObj=new data_mg.obj(adminData);
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
+		var newObj=new data_mg.obj(adminData);
 	newObj.save(function(err,Clientsc){
 		console.log(Clientsc)
 		if(err){
@@ -110,6 +111,13 @@ function add(socket,data,fn){
 				}
 			
 		})
+	}else{
+		result.success=false;
+		result.code=0;
+		result.message="未登录或不是管理员帐号";
+		returnFn();
+	}
+	
 	
 };
 
@@ -134,50 +142,43 @@ function edit(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 	}
-	var lock=1;
-	var callbackCount=0;
-	var errSend=1;
-	var callbackFn=function(){
-		if(lock){
-			callbackCount++;
-			if(callbackCount==data.data.list.length){
-				console.log("updateTime")
-			data_mg.updateTime.update({"parentKey":"obj"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
-				if(errA){
-					result.success=false;
-					result.message="更新时间出错";
-					console.log(errA)
-					result.code=0
-				}else{
-					result.success=true;
-					result.code=1
-				}
-				returnFn()
-			})
-				}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
+		var sendData={}
+		if(data.data.name){
+			sendData.name=data.data.name;
+		}
+		if(data.data.parentId){
+			sendData.parentId=data.data.parentId;
+		}
+		data_mg.obj.update({"id":data.data.id},{$set:sendData},{},function(err){
+			if(err){
+				console.log(err)
+				result.code=0
+				result.success=false;
+				result.message="修改错误";
+				returnFn();
 			}else{
-				if(errSend){
-					errSend=0;
-					returnFn()
+				data_mg.updateTime.update({"parentKey":"obj"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
+					if(errA){
+						result.success=false;
+						result.message="更新时间出错";
+						console.log(errA)
+						result.code=0
+					}else{
+						result.success=true;
+						result.code=1
 					}
-				}
-		}
-	console.log("updateObj")
-	for (var i=0;i<data.data.list.length;i++){
-		if(lock){
-			data_mg.obj.update({"id":data.data.list[i].id},{$set:data.data.list[i]},{},function(err){
-		if(err){
-			console.log(err)
-			result.code=0
-			result.success=false;
-			result.message="修改错误";
-			lock=0;
-		}
-		callbackFn();
-	})
+					returnFn()
+				})
 			}
-		}
-	
+			
+		})
+	}else{
+		result.success=false;
+		result.code=0;
+		result.message="未登录或不是管理员帐号";
+		returnFn();
+	}	
 	
 };
 
@@ -202,54 +203,76 @@ function remove(socket,data,fn){
 	 		fn(returnString);
 	 	}
 	}
-	console.log("删除obj")
-	var lock=1;
-	var callbackcount=0;
-	var errSend=1;
-	var callbackFn=function(){
-		if(lock){
-			callbackcount++;
-			if(callbackcount==data.data.list.length){
-				
-			console.log("更新obj")
+	var toRemove=0;
+	var haveRemove=0
+	var sended=1;
+	var errCount=1;
+	var errSended=1;
+	function removeCallback(){
+		if(errCount&&sended&&toRemove==haveRemove){
 			data_mg.updateTime.update({"parentKey":"obj"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
-				if(errA){
-					result.success=false;
-					result.message="更新出错";
-					console.log(errA)
-					result.code=0;
-				}else{
-					result.success=true;
-					result.code=1;	
-				}
-				returnFn()
-			})
-		
-				}
-			}else{
-				if(errSend){
-					errSend=0;
-					returnFn();
+					if(errA){
+						result.success=false;
+						result.message="更新出错";
+						console.log(errA)
+						result.code=0;
+					}else{
+						result.success=true;
+						result.code=1;	
 					}
-				}
+					returnFn()
+				})
 		}
-		for (var i=0;i<data.data.list.length;i++){
-			if(lock){
-				data_mg.obj.remove({"id":data.data.list[i]},function(err){
-		if(err){
-			console.log(err)
-			lock=0;
-			result.success=false;
-			result.message="删除出错";
-			result.code=0
-		}
-		callbackFn();
-	})
-				}
-			
+	}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
+		function reRoll(id){
+			if(errCount){
+				data_mg.obj.find({parentId:id},function(errFind,removePoint){
+					if(removePoint&&removePoint.length){
+						toRemove+=removePoint.length;
+						for(var i=0;i<removePoint.length;i++){
+							reRoll(removePoint[i].id);
+							data_mg.obj.remove({"id":removePoint[i].id},function(err){
+								if(err){
+									console.log(err)
+									errCount=0;
+									if(errSended){
+										errSended=0;
+										result.success=false;
+										result.message="子类型删除错误";
+										returnFn()
+									}
+								}else{
+									haveRemove++;
+									removeCallback();
+								}
+							})
+						}
+					}else{
+						removeCallback();
+					}
+				})
 			}
-	
-		
+		}
+		data_mg.obj.remove({"id":data.data.id},function(err){
+			if(err){
+				console.log(err)
+				lock=0;
+				result.success=false;
+				result.message="顶级删除出错";
+				result.code=0;
+				returnFn();
+			}else{
+				reRoll(data.data.id)
+			}
+			
+		})
+	}else{
+		result.success=false;
+		result.code=0;
+		result.message="未登录或不是管理员帐号";
+		returnFn();
+	}			
 };
 
 exports.get=get;

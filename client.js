@@ -909,122 +909,6 @@ function remove(socket,data,fn){
 	
 	
 };
-/*************************************************************************************************/
-function getSafeQusetion(socket,data,fn){
-	console.log("client/getSafeQusetion");
-	if(typeof(data.data)=="string"){
-		data.data=JSON.parse(data.data)
-		}
-	console.log(data.data)
-	var result={code:0,
-		time:0,
-		data:{},
-		success:false,
-		message:""};
-	function returnFn(){
-		if(socket){
-	 	socket.emit("client_getSafeQusetion",result);
-	 }
-	 	else if(fn){
-	 		var returnString = JSON.stringify(result);
-	 		fn(returnString);
-	 	}	
-		}
-	data_mg.saveQuestion.findOne({"id":data.data.id},function(err,doc){
-		if(err){
-			console.log(err);
-			result.success=false
-			result.message="找不到该问题"
-			}else{
-				result.success=true;
-				result.code=1;
-				result.data={"question1":doc.question1,
-		"question2":doc.question2};
-				}
-			returnFn()
-		})
-	
-	
-};
-/**************************************************************************/
-function setSafeQusetion(socket,data,fn){
-	console.log("client/setSafeQusetion");
-	if(data.data&&typeof(data.data)=="string"){
-		data.data=JSON.parse(data.data)
-		}
-	console.log(data.data);
-	var result={
-		code:0,
-		time:0,
-		data:{},
-		success:false,
-		message:""
-		};
-	function returnFn(){
-		if(socket){
-	 	socket.emit("client_setSafeQusetion",result);
-	 }
-	 	else if(fn){
-	 		var returnString = JSON.stringify(result);
-	 		fn(returnString);
-	 	}	
-		}
-	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user){
-		data_mg.saveQuestion.update({"id":tokenArry[data.data.token].user.id},{"$set":data.data},{},function(err){
-		if(err){
-			console.log(err)
-			result.success=false;
-			result.message="修改错误";
-			}else{
-				result.success=true;
-				}
-			returnFn()	
-		})
-		}else{
-		result.success=false;
-		result.message="登录超时,请重新登录";
-		returnFn();
-		}	
-};
-/**********************************************************************************/
-function checkSafeQusetion(socket,data,fn){
-	console.log("client/checkSafeQusetion");
-	if(data.data&&typeof(data.data)=="string"){
-		data.data=JSON.parse(data.data)
-		}
-	console.log(data.data);
-	var result={
-		code:0,
-		time:0,
-		data:{},
-		success:false,
-		message:""
-		};
-		function returnFn(){
-			if(socket){
-	 	socket.emit("client_checkSafeQusetion",result);
-	 }
-	 	else if(fn){
-	 		var returnString = JSON.stringify(result);
-	 		fn(returnString);
-	 	}
-			}
-	data_mg.saveQuestion.findOne({id:data.data.id},function(err,doc){
-		if(err){
-			console.log(err);
-			result.success=false;
-			result.message="找不到该用户安全问题";
-			}else{
-				if(data.data.answer1==doc.answer1&&data.data.answer2==doc.answer2){
-					result.success=true;
-					}else{
-						result.success=false;
-						result.message="回答错误";
-						}
-				}
-			returnFn();
-		});
-};
 /**********************************************************************************/
 function bind(socket,data,fn){
 	console.log("client/bind");
@@ -1639,7 +1523,37 @@ function companyEdit(socket,data,fn){
 	 	}
 	}
 	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
-		data_mg.company.update({"id":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(err){
+		var sendData={
+			"state":0
+		}
+		if(data.data.name){
+			sendData.name=data.data.name;
+		}
+		if(data.data.place){
+			sendData.place=data.data.place;
+		}
+		if(data.data.phone){
+			sendData.phone=data.data.phone;
+		}
+		if(data.data.money){
+			sendData.money=data.data.money;
+		}
+		if(data.data.email){
+			sendData.email=data.data.email;
+		}
+		if(data.data.linkMan){
+			sendData.linkMan=data.data.linkMan;
+		}
+		if(data.data.linkPhone){
+			sendData.linkPhone=data.data.linkPhone;
+		}
+		if(data.data.cardNumber){
+			sendData.cardNumber=data.data.cardNumber;
+		}
+		if(data.data.name){
+			sendData.name=data.data.name;
+		}
+		data_mg.company.update({"id":tokenArry[data.data.tk].user.id},{$set:sendData},{},function(err){
 		console.log("更新回调")
 		if(err){
 			console.log(err)
@@ -1653,13 +1567,34 @@ function companyEdit(socket,data,fn){
 				if(errA){
 					console.log(errA)
 					result.success=false;
-			result.message="更新用户信息失败";
+					result.message="更新商户信息失败";
+					returnFn();
 				}else{
-					console.log("修改成功")
-					result.success=true;
-					result.code=1
+					data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$set:{"type":1}},{},function(errB){
+						if(errB){
+							console.log(errB);
+							result.success=false;
+							result.message="修改用户状态失败";
+							returnFn();
+						}else{
+							data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(errC){
+								if(errC){
+									console.log(errC);
+									result.success=false;
+									result.message="更新用户状态失败";
+								}else{
+									console.log("修改成功")
+									result.success=true;
+									result.code=1;
+								}
+								returnFn();
+							})
+						}
+						
+					})
+					
 				}
-				returnFn();
+				
 			})
 		}
 	})
@@ -1669,6 +1604,57 @@ function companyEdit(socket,data,fn){
 		returnFn();
 		}	
 };
+/************************************************************************************************/
+function companyCheck(socket,data,fn){
+	console.log("client/companyCheck");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_companyCheck",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+	}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
+		data_mg.company.update({"id":data.data.id},{$set:{state:1}},{},function(err){
+			if(err){
+				console.log(err);
+				result.success=false;
+				result.code=0;
+				result.message="修改审核状态错误";
+				returnFn();
+			}else{
+				data_mg.client.update({id:data.data.id},{$set:{"type":3}},{},function(errA){
+					if(errA){
+						console.log(errA);
+						result.success=false;
+						result.code=0;
+						result.message="修改商户状态失败";
+					}else{
+						result.success=true;
+						result.code=1;
+					}
+					returnFn();
+				});
+			}
+		});
+	}else{
+		result.success=false;
+		result.code=0;
+		result.message="未登录或不是管理员帐号";
+		returnFn();
+	}
+}
 /************************************************************************************************/
 function cardGet(socket,data,fn){
 	console.log("client/cardGet");
@@ -1993,8 +1979,6 @@ function accountGet(socket,data,fn){
 		data.data=JSON.parse(data.data)
 		}
 	console.log("client/accountGet");
-	//data.data = {"tk":"xxxx",:"userName":"aa",/*登录名/手机/邮箱*/
-	//			"passWord":"djisk"}/*密码*/
 	
 	console.log(data.data)
 	var result={
@@ -2129,9 +2113,6 @@ exports.cardCheck=cardCheck
 exports.realEdit=realEdit;
 exports.realGet=realGet;
 exports.realCheck=realCheck;
-exports.getSafeQusetion=getSafeQusetion;
-exports.setSafeQusetion=setSafeQusetion;
-exports.checkSafeQusetion=checkSafeQusetion;
 exports.checkUser=checkUser;
 exports.checkPhone=checkPhone;
 exports.checkEmail=checkEmail;
@@ -2146,3 +2127,6 @@ exports.bind=bind;
 exports.getBindCode=getBindCode;
 exports.getBind=getBind;
 exports.getToken=getToken;
+exports.companyGet=companyGet;
+exports.companyEdit=companyEdit;
+exports.companyCheck=companyCheck;

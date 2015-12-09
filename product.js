@@ -58,9 +58,6 @@ function add(socket,data,fn){
 		data.data=JSON.parse(data.data)
 		}
 		console.log(data.data)
-		data.data.payedMember=0;
-		data.data.payedMoney=0;
-		data.data.payedCount=0;
 	var result={
 		success:false,
 		code:0,

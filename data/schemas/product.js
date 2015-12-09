@@ -9,10 +9,9 @@ var MemberSchema = new mongoose.Schema({
 		"dsc":String,//简介
 		"goodState":Array,//商品属性
 		"object":String,/*栏目*/
-		"type":String,/*栏目类型*/
-		"tage":Array,/*标签*/
+		"type":Array,/*栏目类型*/
 		"place":String,/*发货地*/
-		"detail":Array,/*详情*/
+		"detail":String,/*详情*/
 		"priceState":Array,/*自定义属性[[{id:"",name:"",icon:""}]]*/
 		"model":{},/*型号id:{price:0,count:0,state:[0,1]}*/
 		"member":Array,
