@@ -325,7 +325,10 @@ function register(socket,data,fn){
 		"shopList":[],/*购物车*/
 		"star":0,/*信用*/
 		"shopName":"",/*点名*/
-		"visit":0
+		"visit":0,
+		"realName":0,/*实名认证，0未认证，1已认证*/
+		"card":0,/*银行卡认证，0未认证，1已认证*/
+		"company":0/*企业信息认证，0未认证，1已认证*/
 		}
 	var result={
 		success:false,
@@ -469,7 +472,10 @@ function register(socket,data,fn){
 		"redpacket":0,/*密码*/
 		"shopList":[],/*购物车*/
 		"star":0,/*信用*/
-		"visit":0
+		"visit":0,
+		"realName":0,/*实名认证，0未认证，1已认证*/
+		"card":0,/*银行卡认证，0未认证，1已认证*/
+		"company":0/*企业信息认证，0未认证，1已认证*/
 		}}
 																
 																if(data.data.introducer){
@@ -1018,12 +1024,12 @@ function getPhoneCode(socket,data,fn){
 	if(data.data.tk&&tokenArry[data.data.tk]){
 		var code=Math.round(Math.random()*1000000);
 		tokenArry[data.data.tk].code=code;
-				console.log(data.data.number)
+				console.log(data.data.phone)
 				console.log(code)
 					var post_data = {  
     					username: userName,  
     					password: b,
-						mobile:data.data.number,
+						mobile:data.data.phone,
 						content:"【星众众筹】你的验证码是"+code,
 						dstime:null
 						};//这是需要提交的数据  
@@ -1319,6 +1325,67 @@ function realGet(socket,data,fn){
 		returnFn()
 		}
 };
+/************************************************************************************************/
+function realListGet(socket,data,fn){
+	console.log("client/realListGet");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={
+					code:0,
+		time:0,
+		data:[],
+		success:false,
+		message:""
+					};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_realListGet",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}	
+	}
+	//returnFn();
+	//return;
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
+		data_mg.updateTime.find({"parentKey":"realName"},function(err,doc){
+		if(err){
+			result.success=false;
+			result.message="获取更新时间失败";
+			console.log(err);
+			returnFn();
+		}else{
+			console.log(doc)
+			if(doc&&doc.length&&doc[0].childKey>data.data.time){
+				result.code=1;
+				result.time=doc[0].childKey
+				data_mg.realName.find({},function(errA,docA){
+					if(errA){
+						result.success=false;
+						result.message="获取项目列表失败";
+						console.log(errA);
+					}else{
+						result.success=true;
+						result.data=docA;
+					}
+					returnFn();
+				});
+			}else{
+				result.success=true;
+				result.code=2;
+				returnFn();
+			}
+		}
+	})
+		}else{
+		result.success=false;
+		result.message="未登录"
+		returnFn()
+		}
+};
 /******************************************************************************************/
 function realEdit(socket,data,fn){
 	console.log("client/realEdit");
@@ -1384,12 +1451,31 @@ function realEdit(socket,data,fn){
 					console.log(errA)
 					result.success=false;
 			result.message="更新用户信息失败";
+			returnFn();
 				}else{
-					console.log("修改成功")
-					result.success=true;
-					result.code=1
+					data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$set:{realName:0}},{},function(errA){
+					if(errA){
+						console.log(errA);
+						result.success=false;
+						result.message="修改用户信息错误";
+						returnFn();
+					}else{
+						data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(errC){
+								if(errC){
+									console.log(errC);
+									result.success=false;
+									result.message="更新用户状态失败";
+								}else{
+									console.log("修改成功")
+									result.success=true;
+									result.code=1;
+								}
+								returnFn();
+							})
+					}
+				});	
 				}
-				returnFn();
+				
 			})
 		}
 	})
@@ -1429,8 +1515,17 @@ function realCheck(socket,data,fn){
 				result.message="修改审核状态错误";
 				returnFn();
 			}else{
-				result.success=true;
-				returnFn();
+				data_mg.client.update({id:data.data.id},{$set:{realName:1}},{},function(errA){
+					if(errA){
+						console.log(errA);
+						result.success=false;
+						result.message="修改用户信息错误";
+						returnFn();
+					}else{
+						result.success=true;
+						returnFn();
+					}
+				});	
 			}
 		});
 	}else{
@@ -1478,6 +1573,67 @@ function companyGet(socket,data,fn){
 				result.code=1;
 				result.time=doc[0].childKey
 				data_mg.company.find({id:tokenArry[data.data.tk].user.id},function(errA,docA){
+					if(errA){
+						result.success=false;
+						result.message="获取项目列表失败";
+						console.log(errA);
+					}else{
+						result.success=true;
+						result.data=docA;
+					}
+					returnFn();
+				});
+			}else{
+				result.success=true;
+				result.code=2;
+				returnFn();
+			}
+		}
+	})
+		}else{
+		result.success=false;
+		result.message="未登录"
+		returnFn()
+		}
+};
+/************************************************************************************************/
+function companyListGet(socket,data,fn){
+	console.log("client/companyListGet");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={
+					code:0,
+		time:0,
+		data:[],
+		success:false,
+		message:""
+					};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_companyListGet",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}	
+	}
+	//returnFn();
+	//return;
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
+		data_mg.updateTime.find({"parentKey":"company"},function(err,doc){
+		if(err){
+			result.success=false;
+			result.message="获取更新时间失败";
+			console.log(err);
+			returnFn();
+		}else{
+			console.log(doc)
+			if(doc&&doc.length&&doc[0].childKey>data.data.time){
+				result.code=1;
+				result.time=doc[0].childKey
+				data_mg.company.find({},function(errA,docA){
 					if(errA){
 						result.success=false;
 						result.message="获取项目列表失败";
@@ -1570,7 +1726,7 @@ function companyEdit(socket,data,fn){
 					result.message="更新商户信息失败";
 					returnFn();
 				}else{
-					data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$set:{"type":1}},{},function(errB){
+					data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$set:{"type":1,"company":0}},{},function(errB){
 						if(errB){
 							console.log(errB);
 							result.success=false;
@@ -1640,11 +1796,20 @@ function companyCheck(socket,data,fn){
 						result.success=false;
 						result.code=0;
 						result.message="修改商户状态失败";
+						returnFn();
+					}else{
+						data_mg.client.update({id:data.data.id},{$set:{company:1}},{},function(errA){
+					if(errA){
+						console.log(errA);
+						result.success=false;
+						result.message="修改用户信息错误";
+						returnFn();
 					}else{
 						result.success=true;
-						result.code=1;
+						returnFn();
 					}
-					returnFn();
+				});	
+					}
 				});
 			}
 		});
@@ -1693,6 +1858,67 @@ function cardGet(socket,data,fn){
 				result.code=1;
 				result.time=doc[0].childKey
 				data_mg.cardBind.find({id:tokenArry[data.data.tk].user.id},function(errA,docA){
+					if(errA){
+						result.success=false;
+						result.message="获取项目列表失败";
+						console.log(errA);
+					}else{
+						result.success=true;
+						result.data=docA;
+					}
+					returnFn();
+				});
+			}else{
+				result.success=true;
+				result.code=2;
+				returnFn();
+			}
+		}
+	})
+		}else{
+		result.success=false;
+		result.message="未登录"
+		returnFn()
+		}
+};
+/************************************************************************************************/
+function cardListGet(socket,data,fn){
+	console.log("client/cardListGet");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={
+					code:0,
+		time:0,
+		data:[],
+		success:false,
+		message:""
+					};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_cardListGet",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}	
+	}
+	//returnFn();
+	//return;
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
+		data_mg.updateTime.find({"parentKey":"cardBind"},function(err,doc){
+		if(err){
+			result.success=false;
+			result.message="获取更新时间失败";
+			console.log(err);
+			returnFn();
+		}else{
+			console.log(doc)
+			if(doc&&doc.length&&doc[0].childKey>data.data.time){
+				result.code=1;
+				result.time=doc[0].childKey
+				data_mg.cardBind.find({},function(errA,docA){
 					if(errA){
 						result.success=false;
 						result.message="获取项目列表失败";
@@ -1766,12 +1992,40 @@ function cardEdit(socket,data,fn){
 					console.log(errA)
 					result.success=false;
 			result.message="更新用户信息失败";
+			returnFn();
 				}else{
-					console.log("修改成功")
-					result.success=true;
-					result.code=1
+					data_mg.client.update({id:data.data.id},{$set:{card:1}},{},function(errA){
+						if(errA){
+							console.log(errA);
+							result.success=false;
+							result.message="修改用户信息错误";
+							returnFn();
+						}else{
+							data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$set:{card:0}},{},function(errA){
+					if(errA){
+						console.log(errA);
+						result.success=false;
+						result.message="修改用户信息错误";
+						returnFn();
+					}else{
+						data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(errC){
+								if(errC){
+									console.log(errC);
+									result.success=false;
+									result.message="更新用户状态失败";
+								}else{
+									console.log("修改成功")
+									result.success=true;
+									result.code=1;
+								}
+								returnFn();
+							})
+					}
+				});	
+						}
+					});	
 				}
-				returnFn();
+				
 			})
 		}
 	})
@@ -2109,10 +2363,12 @@ exports.accountOut=accountOut;
 exports.accountIn=accountIn;
 exports.cardEdit=cardEdit;
 exports.cardGet=cardGet;
-exports.cardCheck=cardCheck
+exports.cardCheck=cardCheck;
+exports.cardListGet=cardListGet;
 exports.realEdit=realEdit;
 exports.realGet=realGet;
 exports.realCheck=realCheck;
+exports.realListGet=realListGet;
 exports.checkUser=checkUser;
 exports.checkPhone=checkPhone;
 exports.checkEmail=checkEmail;
@@ -2130,3 +2386,4 @@ exports.getToken=getToken;
 exports.companyGet=companyGet;
 exports.companyEdit=companyEdit;
 exports.companyCheck=companyCheck;
+exports.companyListGet=companyListGet;

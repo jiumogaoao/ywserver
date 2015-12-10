@@ -17,6 +17,9 @@ var MemberSchema = new mongoose.Schema({
 		"shopList":Array,/*购物车*/
 		"star":Number,/*好评数*/
 		"shopName":String,/*店名*/
-		"visit":Number/*人气*/
+		"visit":Number,/*人气*/
+		"realName":Number,/*实名认证，0未认证，1已认证*/
+		"card":Number,/*银行卡认证，0未认证，1已认证*/
+		"company":Number/*企业信息认证，0未认证，1已认证*/
 	})
 module.exports = MemberSchema;

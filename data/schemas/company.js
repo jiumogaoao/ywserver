@@ -3,7 +3,6 @@ var MemberSchema = new mongoose.Schema({
 		"id":String,/*id*/
 		"name":String,/*公司名*/
 		"place":String,/*地区*/
-		"phone":String,/*联系电话*/
 		"money":Number,/*注册资金*/
 		"email":String,/*邮箱*/
 		"type":Number,/*企业类型*/
