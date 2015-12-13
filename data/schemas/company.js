@@ -5,7 +5,7 @@ var MemberSchema = new mongoose.Schema({
 		"place":String,/*地区*/
 		"money":Number,/*注册资金*/
 		"email":String,/*邮箱*/
-		"type":Number,/*企业类型*/
+		"type":String,/*企业类型*/
 		"linkMan":String,/*联系人*/
 		"linkPhone":String,/*联系电话*/
 		"cardNumber":String,/*执照号*/

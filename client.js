@@ -1301,7 +1301,7 @@ function realGet(socket,data,fn){
 			if(doc&&doc.length&&doc[0].childKey>data.data.time){
 				result.code=1;
 				result.time=doc[0].childKey
-				data_mg.realName.find({id:tokenArry[data.data.tk].user.id},function(errA,docA){
+				data_mg.realName.findOne({id:tokenArry[data.data.tk].user.id},function(errA,docA){
 					if(errA){
 						result.success=false;
 						result.message="获取项目列表失败";
@@ -1572,7 +1572,7 @@ function companyGet(socket,data,fn){
 			if(doc&&doc.length&&doc[0].childKey>data.data.time){
 				result.code=1;
 				result.time=doc[0].childKey
-				data_mg.company.find({id:tokenArry[data.data.tk].user.id},function(errA,docA){
+				data_mg.company.findOne({id:tokenArry[data.data.tk].user.id},function(errA,docA){
 					if(errA){
 						result.success=false;
 						result.message="获取项目列表失败";
@@ -1857,7 +1857,7 @@ function cardGet(socket,data,fn){
 			if(doc&&doc.length&&doc[0].childKey>data.data.time){
 				result.code=1;
 				result.time=doc[0].childKey
-				data_mg.cardBind.find({id:tokenArry[data.data.tk].user.id},function(errA,docA){
+				data_mg.cardBind.findOne({id:tokenArry[data.data.tk].user.id},function(errA,docA){
 					if(errA){
 						result.success=false;
 						result.message="获取项目列表失败";
