@@ -15,7 +15,8 @@ var app = require('./server')
 	  config : require('./config'),
 	  obj : require('./obj'),
 	  type : require('./type'),
-	  com : require('./com')
+	  com : require('./com'),
+	  borrow : require('./borrow')
    }
 /**********************************************************************************/
    var dbURL="mongodb://127.0.0.1:27017/xiaoyiwo"
@@ -41,7 +42,7 @@ var app = require('./server')
 	  data_mg.redPacket = require('./data/models/redPacket');//红包表
 	  data_mg.count = require('./data/models/count');//数据统计表
 	  data_mg.company = require('./data/models/company');//企业信息表
-
+	  data_mg.borrow=require('./data/models/borrow');//借贷表
 /***********************************************************************************/
 	global.uuid=function(){
 		return 'xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -80,7 +81,7 @@ var initDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==33){
+			if(totalCount==34){
 				showDB();
 				}
 			}
@@ -353,13 +354,18 @@ var initDB=function(){
 			console.log("promoTime init");
 			totalCheck();
 			});
+		var addBorrowT=new data_mg.updateTime({"parentKey":"borrow","childKey":0})
+		addBorrowT.save(function(){
+			console.log("borrow init");
+			totalCheck();
+			});
 }
 /***********************************************************************************/
 var emptyDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==16){
+			if(totalCount==17){
 				initDB();
 				}
 			}
@@ -427,9 +433,13 @@ var emptyDB=function(){
 			console.log("updateTime empty");
 			totalCheck();
 			});
+		data_mg.borrow.remove({},function(){
+			console.log("borrow empty");
+			totalCheck();
+			});
 }
-	//emptyDB();
-	showDB();
+	emptyDB();
+	//showDB();
 /***********************************************************************************/	
  	 var io = require('socket.io').listen(app.target)
 app.target.listen(8888);
