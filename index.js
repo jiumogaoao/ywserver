@@ -81,7 +81,7 @@ var initDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==34){
+			if(totalCount==30){
 				showDB();
 				}
 			}
@@ -278,34 +278,9 @@ var initDB=function(){
 			console.log("Promo13 init");
 			totalCheck();
 			});
-		var addObj0=new data_mg.obj({"id":uuid(),"name":"产权众筹"})
+		var addObj0=new data_mg.obj({list:[]})
 		addObj0.save(function(){
 			console.log("Obj0 init");
-			totalCheck();
-			});
-		var addObj1=new data_mg.obj({"id":uuid(),"name":"经营权众筹"})
-		addObj1.save(function(){
-			console.log("Obj1 init");
-			totalCheck();
-			});
-		var addObj2=new data_mg.obj({"id":uuid(),"name":"众筹建房"})
-		addObj2.save(function(){
-			console.log("Obj2 init");
-			totalCheck();
-			});
-		var addType0=new data_mg.type({"id":uuid(),"name":"热门地区"})
-		addType0.save(function(){
-			console.log("type0 init");
-			totalCheck();
-			});
-		var addType1=new data_mg.type({"id":uuid(),"name":"热门城市"})
-		addType1.save(function(){
-			console.log("type1 init");
-			totalCheck();
-			});
-		var addType2=new data_mg.type({"id":uuid(),"name":"潜力地区"})
-		addType2.save(function(){
-			console.log("type2 init");
 			totalCheck();
 			});
 		/****************************************************************************/
@@ -438,8 +413,8 @@ var emptyDB=function(){
 			totalCheck();
 			});
 }
-	emptyDB();
-	//showDB();
+	//emptyDB();
+	showDB();
 /***********************************************************************************/	
  	 var io = require('socket.io').listen(app.target)
 app.target.listen(8888);

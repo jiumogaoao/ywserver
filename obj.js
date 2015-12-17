@@ -40,7 +40,7 @@ function get(socket,data,fn){
 						console.log(errA);
 					}else{
 						result.success=true;
-						result.data=docA.list;
+						result.data=docA[0].list;
 					}
 					returnFn();
 				});
@@ -83,7 +83,7 @@ function edit(socket,data,fn){
 		if(data.data.parentId){
 			sendData.parentId=data.data.parentId;
 		}
-		data_mg.obj.update({},{$set:{list:data.obj}},{},function(err){
+		data_mg.obj.update({},{$set:{list:data.data.obj}},{},function(err){
 			if(err){
 				console.log(err)
 				result.code=0
