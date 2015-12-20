@@ -574,8 +574,14 @@ function resetKey(socket,data,fn){
 	 		fn(returnString);
 	 	}
 			}
-		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
-			data_mg.client_password.update({"parentKey":tokenArry[data.data.tk].user.id,"childKey":data.data.oldKey},{$set:{"childKey":data.data.newKey}},{},function(err){
+		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type){
+			var searchObj={};
+			if(tokenArry[data.data.tk].user.type==2){
+				searchObj={"parentKey":data.data.id}
+			}else{
+				searchObj={"parentKey":tokenArry[data.data.tk].user.id,"childKey":data.data.oldKey}
+			}
+			data_mg.client_password.update(searchObj,{$set:{"childKey":data.data.newKey}},{},function(err){
 		if(err){
 			console.log(err)
 			result.success=false;
@@ -591,67 +597,6 @@ function resetKey(socket,data,fn){
 				result.message="登陆信息超时,请重新登陆";
 				returnFn();
 				}
-	
-		
-};
-/*******************************************************************************************************/
-function resetAllKey(socket,data,fn){
-	console.log("client/resetAllKey");
-	//data.data = "ddgdgd"/*管理员id*/
-	if(typeof(data.data)=="string"){
-		data.data=JSON.parse(data.data)
-		}
-	console.log(data.data)
-	var result={code:0,
-		time:0,
-		data:[],
-		success:false,
-		message:""};
-	var returnFn=function(){
-		if(socket){
-	 	socket.emit("client_resetAllKey",result);
-	 }
-	 	else if(fn){
-	 		var returnString = JSON.stringify(result);
-	 		fn(returnString);
-	 	}
-	}
-	console.log("修改password")
-	var lock=1;
-	var callbackcount=0;
-	var errSend=1;
-	var callbackFn=function(){
-		if(lock){
-			callbackcount++;
-			if(callbackcount==data.data.list.length){
-				console.log("更新成功")
-				result.success=true;
-					result.code=1;
-					returnFn()
-				}
-			}else{
-				if(errSend){
-					errSend=0;
-					returnFn();
-					}
-				}
-		}
-		for (var i=0;i<data.data.list.length;i++){
-			if(lock){
-				data_mg.client_password.update({"parentKey":data.data.list[i]},{$set:{childKey:"123456"}},{},function(err){
-					console.log(data.data.list[i])
-		if(err){
-			console.log(err)
-			lock=0;
-			result.success=false;
-			result.message="重置出错";
-			result.code=0
-		}
-		callbackFn();
-	})
-				}
-			
-			}
 	
 		
 };
@@ -1522,8 +1467,18 @@ function realCheck(socket,data,fn){
 						result.message="修改用户信息错误";
 						returnFn();
 					}else{
-						result.success=true;
-						returnFn();
+						data_mg.updateTime.update({"parentKey":"realName"},{$set:{"childKey":new Date().getTime()}},{},function(errC){
+								if(errC){
+									console.log(errC);
+									result.success=false;
+									result.message="更新实名状态失败";
+								}else{
+									console.log("修改成功")
+									result.success=true;
+									result.code=1;
+								}
+								returnFn();
+							})
 					}
 				});	
 			}
@@ -1805,8 +1760,18 @@ function companyCheck(socket,data,fn){
 						result.message="修改用户信息错误";
 						returnFn();
 					}else{
-						result.success=true;
-						returnFn();
+						data_mg.updateTime.update({"parentKey":"company"},{$set:{"childKey":new Date().getTime()}},{},function(errC){
+								if(errC){
+									console.log(errC);
+									result.success=false;
+									result.message="更新企业状态失败";
+								}else{
+									console.log("修改成功")
+									result.success=true;
+									result.code=1;
+								}
+								returnFn();
+							})
 					}
 				});	
 					}
@@ -2065,8 +2030,18 @@ function cardCheck(socket,data,fn){
 				result.message="修改审核状态错误";
 				returnFn();
 			}else{
-				result.success=true;
-				returnFn();
+				data_mg.updateTime.update({"parentKey":"cardBind"},{$set:{"childKey":new Date().getTime()}},{},function(errC){
+								if(errC){
+									console.log(errC);
+									result.success=false;
+									result.message="更新银行卡状态失败";
+								}else{
+									console.log("修改成功")
+									result.success=true;
+									result.code=1;
+								}
+								returnFn();
+							})
 			}
 		});
 	}else{
@@ -2356,7 +2331,6 @@ function visitGet(socket,data,fn){
 	}
 exports.getPhoneCode=getPhoneCode;
 exports.visitGet=visitGet;
-exports.resetAllKey=resetAllKey;
 exports.redPacketGet=redPacketGet;
 exports.accountGet=accountGet;
 exports.accountOut=accountOut;
