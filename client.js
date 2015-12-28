@@ -2329,6 +2329,45 @@ function visitGet(socket,data,fn){
 			returnFunction();
 		})
 	}
+/***************************************************************************/
+function getShop(socket,data,fn){
+	console.log("client/getShop");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	//data.data = 10086/*不用传*/
+	var result={
+		code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""
+		};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_getShop",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+	data_mg.client.findOne({"id":data.data.id},function(err,doc){
+		if(err){
+			console.log(err);
+			result.success=false;
+			result.message="查询店铺信息失败";
+			returnFn()
+			}else{
+				result.success=true;
+								result.code=1;
+								result.data=doc;
+								returnFn();
+				}
+		})
+		
+};
 exports.getPhoneCode=getPhoneCode;
 exports.visitGet=visitGet;
 exports.redPacketGet=redPacketGet;
@@ -2361,3 +2400,4 @@ exports.companyGet=companyGet;
 exports.companyEdit=companyEdit;
 exports.companyCheck=companyCheck;
 exports.companyListGet=companyListGet;
+exports.getShop=getShop;

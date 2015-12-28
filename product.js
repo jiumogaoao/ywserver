@@ -79,6 +79,8 @@ function add(socket,data,fn){
 		data.data.member=[];
 		data.data.shopId=tokenArry[data.data.tk].user.id;
 		data.data.star=0;
+		data.data.visit=0;
+		data.data.state="0";
 		var newProduct=new data_mg.product(data.data);
 	newProduct.save(function(err){
 		if(err){console.log(err)
@@ -94,7 +96,10 @@ function add(socket,data,fn){
 						}else{
 							result.time=lastTime;
 							result.success=true;
+							result.code=1;
+							result.data={"id":data.data.id};
 							}
+							console.log(result);
 						returnFn()
 					})
 				}
@@ -136,7 +141,109 @@ function edit(socket,data,fn){
 			delete data.data.member
 			delete data.data.shopId
 			delete data.data.star;
+			data.data.state="0";
+			data.data.visit=0;
 	data_mg.product.update({"id":editId},{$set:data.data},{},function(err){
+		if(err){console.log(err)
+			result.success=false;
+			result.message="修改产品失败";
+			returnFn()
+			}else{console.log("更新时间")
+				data_mg.updateTime.update({"parentKey":"product"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
+					if(errA){console.log(errA)
+						result.success=false;
+			result.message="更新产品失败";
+						}else{
+							result.success=true;
+							result.code=1
+							}
+						returnFn()
+					})
+				}
+		})
+		}else{
+		result.success=false;
+				result.message="登陆信息超时,或不是管理员帐号";
+				returnFn();
+		}	
+	
+		
+};
+/**************************************************************************************/
+function pass(socket,data,fn){
+	console.log("product/pass");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+		console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("product_pass",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+	
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&(tokenArry[data.data.tk].user.type==2)){
+			console.log("更新产品")
+	data_mg.product.update({"id":data.data.id},{$set:{"state":data.data.state}},{},function(err){
+		if(err){console.log(err)
+			result.success=false;
+			result.message="修改产品失败";
+			returnFn()
+			}else{console.log("更新时间")
+				data_mg.updateTime.update({"parentKey":"product"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
+					if(errA){console.log(errA)
+						result.success=false;
+			result.message="更新产品失败";
+						}else{
+							result.success=true;
+							result.code=1
+							}
+						returnFn()
+					})
+				}
+		})
+		}else{
+		result.success=false;
+				result.message="登陆信息超时,或不是管理员帐号";
+				returnFn();
+		}	
+	
+		
+};
+/**************************************************************************************/
+function visit(socket,data,fn){
+	console.log("product/visit");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+		console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("product_visit",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+	
+	if(tokenArry[data.data.tk]){
+			console.log("更新产品")
+	data_mg.product.update({"id":data.data.id},{$inc:{"visit":1}},{},function(err){
 		if(err){console.log(err)
 			result.success=false;
 			result.message="修改产品失败";
@@ -324,4 +431,6 @@ exports.detail=detail;
 exports.get=get;
 exports.add=add;
 exports.edit=edit;
+exports.pass=pass;
 exports.remove=remove;
+exports.visit=visit;
