@@ -21,6 +21,7 @@ var MemberSchema = new mongoose.Schema({
 		"shopBanner":String,/*店铺banner*/
 		"shopDesc":String,/*店铺简介*/
 		"shopPlace":String,/*店铺地点*/
+		"shopType":Array,/*商品分类*/
 		"visit":Number,/*人气*/
 		"realName":Number,/*实名认证，0未认证，1已认证*/
 		"card":Number,/*银行卡认证，0未认证，1已认证*/

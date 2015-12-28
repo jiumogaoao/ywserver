@@ -21,6 +21,7 @@ var MemberSchema = new mongoose.Schema({
 		"recommend":String,/*推荐*/
 		"tag":Array,/*标签*/
 		"state":String,/*0未审核1已通过2未通过*/
-		"visit":Number/*浏览数*/
+		"visit":Number,/*浏览数*/
+		"shopType":String/*商品分类*/
 	})
 module.exports = MemberSchema;
