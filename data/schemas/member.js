@@ -14,7 +14,7 @@ var MemberSchema = new mongoose.Schema({
 		"ip":String,/*当前登录ip*/
 		"balance":Number,/*余额*/
 		"redpacket":Number,/*红包*/
-		"shopList":Array,/*购物车*/
+		"shopList":{},/*购物车*/
 		"star":Number,/*好评数*/
 		"shopName":String,/*店名*/
 		"shopIcon":String,/*店铺logo*/

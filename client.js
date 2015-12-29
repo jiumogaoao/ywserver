@@ -322,7 +322,7 @@ function register(socket,data,fn){
 		"balance":0,
 		"redpacket":0,
 		"password":data.data.password,/*密码*/
-		"shopList":[],/*购物车*/
+		"shopList":{},/*购物车*/
 		"star":0,/*信用*/
 		"shopName":"",/*点名*/
 		"visit":0,
@@ -2368,6 +2368,57 @@ function getShop(socket,data,fn){
 		})
 		
 };
+/***************************************************************/
+function editshopList(socket,data,fn){
+	console.log("client/editshopList");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	//data.data = 10086/*不用传*/
+	var result={
+		code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""
+		};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_getShop",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+		data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$set:{shopList:data.data.shopList}},{},function(err){
+			if(err){
+				console.log(err);
+				result.success=false;
+				result.message="修改购物车失败";
+				returnFn();	
+			}else{
+				tokenArry[data.data.tk].user.shopList=data.data.shopList;
+				data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(errC){
+								if(errC){
+									console.log(errC);
+									result.success=false;
+									result.message="更新用户状态失败";
+								}else{
+									console.log("修改成功")
+									result.success=true;
+									result.code=1;
+								}
+								returnFn();
+							})
+			}
+			
+		})
+	}
+}
+/***************************************************************/
 exports.getPhoneCode=getPhoneCode;
 exports.visitGet=visitGet;
 exports.redPacketGet=redPacketGet;
@@ -2401,3 +2452,4 @@ exports.companyEdit=companyEdit;
 exports.companyCheck=companyCheck;
 exports.companyListGet=companyListGet;
 exports.getShop=getShop;
+exports.editshopList=editshopList;
