@@ -119,7 +119,7 @@ function add(socket,data,fn){
 						
 					}
 				}
-				function addProduct(i,pobject){
+				function addProduct(num,pobject){
 					data_mg.product.findOne({id:pobject.id},function(findProductErr,product){
 						if(coverErr){
 							if(findProductErr){
@@ -144,7 +144,7 @@ function add(socket,data,fn){
 										console.log("库存足够")
 										totalPrice+=priceObject[pobject.modelId].price*pobject.count;
 										console.log("添加到替换列表")
-										coverArry[i]={id:product.id,name:product.title,modelId:pobject.modelId,price:priceObject[pobject.modelId].price,count:pobject.count,modelName:product.title,modelIcon:product.image[0],modelString:priceObject[pobject.modelId].modelString}
+										coverArry[num]={id:product.id,name:product.title,modelId:pobject.modelId,price:priceObject[pobject.modelId].price,count:pobject.count,modelName:product.title,modelIcon:product.image[0],modelString:priceObject[pobject.modelId].modelString}
 										priceObject[pobject.modelId].count-=pobject.count;
 										console.log("减库存")
 										data_mg.product.update({id:pobject.id},{$set:{model:product.price}},{},function(modelCountErr){
@@ -190,6 +190,7 @@ function add(socket,data,fn){
 
 					})
 				}
+
 				for (var i=0;i<data.data.product.length;i++){
 					addProduct(i,data.data.product[i]);
 				}
@@ -675,7 +676,7 @@ function backPay(socket,data,fn){
 	}
 }
 /*****************************************************************************************************/
-function list(socket,data,fn){
+function list(socket,data,fn){//订单列表
 	console.log("deal/list");
 	if(typeof(data.data)=="string"){
 		data.data=JSON.parse(data.data)
@@ -715,7 +716,47 @@ function list(socket,data,fn){
 				}
 		
 };
-
+/*****************************************************************************************************/
+function shopList(socket,data,fn){//订单列表
+	console.log("deal/shopList");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFN=function(){
+		if(socket){
+	 	socket.emit("deal_shopList",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==3){
+			data_mg.deal.find({shopId:tokenArry[data.data.tk].user.id},function(err,doc){
+			if(err){
+				console.log(err)
+				result.success=false;
+				result.message("获取交易列表失败")
+				}else{
+					result.success=true;
+					result.data=doc;
+					result.code=1
+					}
+			returnFN();		
+			})
+			}else{
+				result.success=false;
+				result.message="登陆信息超时或不是卖家帐号";
+				returnFn();
+				}
+		
+};
 exports.get=get;
 exports.add=add;
 exports.cancel=cancel;
@@ -726,4 +767,4 @@ exports.evaluate=evaluate;
 exports.back=back;
 exports.backPay=backPay;
 exports.list=list;
-
+exports.shopList=shopList;
