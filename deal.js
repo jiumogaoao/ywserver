@@ -133,16 +133,21 @@ function add(socket,data,fn){
 								}
 							}else{
 								console.log("有该商品")
-								if(product.model[pobject.modelId]){
+								
+								var priceObject={};
+								for(var i=0;i<product.price.length;i++){
+									priceObject[product.price[i].id]=product.price[i];
+								}
+								if(priceObject[pobject.modelId]){
 									console.log("有该类型")
-									if(product.model[pobject.modelId].count>=pobject.count){
+									if(priceObject[pobject.modelId].count>=pobject.count){
 										console.log("库存足够")
-										totalPrice+=product.model[pobject.modelId].price*pobject.count;
+										totalPrice+=priceObject[pobject.modelId].price*pobject.count;
 										console.log("添加到替换列表")
-										coverArry[i]={id:product.id,name:product.title,modelId:pobject.modelId,price:product.model[pobject.modelId].price,count:pobject.count,modelName:product.model[pobject.modelId].name,modelIcon:product.model[pobject.modelId].icon}
-										product.model[pobject.modelId].count-=pobject.count;
+										coverArry[i]={id:product.id,name:product.title,modelId:pobject.modelId,price:priceObject[pobject.modelId].price,count:pobject.count,modelName:product.title,modelIcon:product.image[0],modelString:priceObject[pobject.modelId].modelString}
+										priceObject[pobject.modelId].count-=pobject.count;
 										console.log("减库存")
-										data_mg.product.update({id:pobject.id},{$set:{model:product.model}},{},function(modelCountErr){
+										data_mg.product.update({id:pobject.id},{$set:{model:product.price}},{},function(modelCountErr){
 											if(modelCountErr){
 												console.log(modelCountErr);
 												coverErr=0;
