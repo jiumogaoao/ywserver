@@ -25,6 +25,9 @@ var MemberSchema = new mongoose.Schema({
 		"visit":Number,/*人气*/
 		"realName":Number,/*实名认证，0未认证，1已认证*/
 		"card":Number,/*银行卡认证，0未认证，1已认证*/
-		"company":Number/*企业信息认证，0未认证，1已认证*/
+		"company":Number,/*企业信息认证，0未认证，1已认证*/
+		"collectShop":{},/*店铺收藏*/
+		"collectProduct":{},/*商品收藏*/
+		"wantOpen":Number
 	})
 module.exports = MemberSchema;

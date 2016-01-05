@@ -75,6 +75,7 @@ function add(socket,data,fn){
 				var coverErr=1;
 				var coverErrSend=1;
 				var totalPrice=0;
+				var shopId="";
 				function coverCallBack(){
 					coverCount++;
 					if(coverCount==data.data.product.length){
@@ -88,8 +89,8 @@ function add(socket,data,fn){
 									var newdeal=new data_mg.deal({
 							"id":uuid(),/*id*/
 							"product":coverArry,/*商品*/
-							"userId":data.data.userId,/*用户id*/
-							"shopId":data.data.shopId,/*商户Id*/
+							"userId":tokenArry[data.data.tk].user.id,/*用户id*/
+							"shopId":shopId,/*商户Id*/
 							"startTime":new Date().getTime(),/*购买时间*/
 							"shopName":data.data.shopName,/*商家名*/
 							"name":tokenArry[data.data.tk].user.userName,/*用户名*/
@@ -133,7 +134,7 @@ function add(socket,data,fn){
 								}
 							}else{
 								console.log("有该商品")
-								
+								shopId=product.shopId;
 								var priceObject={};
 								for(var i=0;i<product.price.length;i++){
 									priceObject[product.price[i].id]=product.price[i];
@@ -144,7 +145,7 @@ function add(socket,data,fn){
 										console.log("库存足够")
 										totalPrice+=priceObject[pobject.modelId].price*pobject.count;
 										console.log("添加到替换列表")
-										coverArry[num]={id:product.id,name:product.title,modelId:pobject.modelId,price:priceObject[pobject.modelId].price,count:pobject.count,modelName:product.title,modelIcon:product.image[0],modelString:priceObject[pobject.modelId].modelString}
+										coverArry[num]={id:product.id,name:product.title,modelId:pobject.modelId,price:priceObject[pobject.modelId].price,count:pobject.count,modelName:product.title,modelIcon:product.image[0],modelString:pobject.modelString}
 										priceObject[pobject.modelId].count-=pobject.count;
 										console.log("减库存")
 										data_mg.product.update({id:pobject.id},{$set:{model:product.price}},{},function(modelCountErr){
@@ -217,7 +218,7 @@ function cancel(socket,data,fn){
 		data:{},
 		success:false,
 		message:""};
-	var returnFN=function(){
+	var returnFn=function(){
 		if(socket){
 	 	socket.emit("deal_list",result);
 	 }
@@ -274,7 +275,7 @@ function pay(socket,data,fn){
 		data:{},
 		success:false,
 		message:""};
-	var returnFN=function(){
+	var returnFn=function(){
 		if(socket){
 	 	socket.emit("deal_pay",result);
 	 }
@@ -302,10 +303,10 @@ function pay(socket,data,fn){
 							var restMoney=user.balance+user.redpacket;
 							if(restMoney>=doc.totalPrice){
 								var moneySet=0;
-					if(member.redpacket>=doc.totalPrice){
-						moneySet={balance:member.balance,redpacket:(member.redpacket-doc.totalPrice)}
+					if(user.redpacket>=doc.totalPrice){
+						moneySet={balance:user.balance,redpacket:(user.redpacket-doc.totalPrice)}
 					}else{
-						moneySet={balance:member.balance+member.redpacket-doc.totalPrice,redpacket:0}
+						moneySet={balance:user.balance+user.redpacket-doc.totalPrice,redpacket:0}
 					}
 					data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$set:moneySet},{},function(errA){
 						if(errA){
@@ -362,7 +363,7 @@ function send(socket,data,fn){
 		data:{},
 		success:false,
 		message:""};
-	var returnFN=function(){
+	var returnFn=function(){
 		if(socket){
 	 	socket.emit("deal_send",result);
 	 }
@@ -426,7 +427,7 @@ function confirm(socket,data,fn){
 		data:{},
 		success:false,
 		message:""};
-	var returnFN=function(){
+	var returnFn=function(){
 		if(socket){
 	 	socket.emit("deal_confirm",result);
 	 }
@@ -501,7 +502,7 @@ function evaluate(socket,data,fn){
 		data:{},
 		success:false,
 		message:""};
-	var returnFN=function(){
+	var returnFn=function(){
 		if(socket){
 	 	socket.emit("deal_evaluate",result);
 	 }
@@ -567,7 +568,7 @@ function back(socket,data,fn){
 		data:{},
 		success:false,
 		message:""};
-	var returnFN=function(){
+	var returnFn=function(){
 		if(socket){
 	 	socket.emit("deal_back",result);
 	 }
@@ -618,7 +619,7 @@ function backPay(socket,data,fn){
 		data:{},
 		success:false,
 		message:""};
-	var returnFN=function(){
+	var returnFn=function(){
 		if(socket){
 	 	socket.emit("deal_backPay",result);
 	 }
@@ -687,7 +688,7 @@ function list(socket,data,fn){//订单列表
 		data:{},
 		success:false,
 		message:""};
-	var returnFN=function(){
+	var returnFn=function(){
 		if(socket){
 	 	socket.emit("deal_list",result);
 	 }
@@ -707,7 +708,7 @@ function list(socket,data,fn){//订单列表
 					result.data=doc;
 					result.code=1
 					}
-			returnFN();		
+			returnFn();		
 			})
 			}else{
 				result.success=false;
@@ -728,7 +729,7 @@ function shopList(socket,data,fn){//订单列表
 		data:{},
 		success:false,
 		message:""};
-	var returnFN=function(){
+	var returnFn=function(){
 		if(socket){
 	 	socket.emit("deal_shopList",result);
 	 }
@@ -748,7 +749,7 @@ function shopList(socket,data,fn){//订单列表
 					result.data=doc;
 					result.code=1
 					}
-			returnFN();		
+			returnFn();		
 			})
 			}else{
 				result.success=false;

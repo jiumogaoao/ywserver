@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 var MemberSchema = new mongoose.Schema({
 		"id":String,/*id*/
 		"user":String,/*用户id*/
+		"image":String,/*用户头像*/
 		"linkMan":String,/*联系人*/
 		"birthday":Number,/*生日*/
 		"workPlace":String,/*工作地点*/

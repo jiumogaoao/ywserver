@@ -578,6 +578,7 @@ function resetKey(socket,data,fn){
 			var searchObj={};
 			if(tokenArry[data.data.tk].user.type==2){
 				searchObj={"parentKey":data.data.id}
+				data.data.newKey="123456";
 			}else{
 				searchObj={"parentKey":tokenArry[data.data.tk].user.id,"childKey":data.data.oldKey}
 			}
@@ -703,6 +704,9 @@ function edit(socket,data,fn){
 		}
 		if(data.data.email){
 			setData.email=data.data.email;
+		}
+		if(data.data.wantOpen){
+			setData.wantOpen=data.data.wantOpen;
 		}
 		data_mg.client.update({"id":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(err){
 		console.log("更新回调")
@@ -2036,11 +2040,21 @@ function cardCheck(socket,data,fn){
 									result.success=false;
 									result.message="更新银行卡状态失败";
 								}else{
-									console.log("修改成功")
-									result.success=true;
-									result.code=1;
+									data_mg.client.update({id:data.data.id},{$set:{card:1}},{},function(errD){
+										if(errD){
+											console.log(errD);
+											result.success=false;
+											result.message="修改用户信息错误";
+											returnFn();
+										}else{
+											console.log("修改成功")
+											result.success=true;
+											result.code=1;
+											returnFn();
+										}
+									})		
 								}
-								returnFn();
+								
 							})
 			}
 		});
@@ -2455,6 +2469,70 @@ function getShopList(socket,data,fn){
 		returnFn();
 	});
 	}
+/**************************************************************************************/
+
+function collectEdit(socket,data,fn){
+	console.log("client/collectEdit");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_collectEdit",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+	}
+	console.log("tk")
+	console.log(data.data.tk)
+	console.log(tokenArry[data.data.tk])
+	console.log(tokenArry[data.data.tk].user)
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
+		
+		data_mg.client.update({"id":tokenArry[data.data.tk].user.id},{$set:{collectShop:data.data.collectShop,collectProduct:data.data.collectProduct}},{},function(err){
+		console.log("更新回调")
+		if(err){
+			console.log(err)
+			result.success=false;
+			result.message="修改失败";
+			returnFn()
+		}else{
+			console.log("开始更新时间")
+			data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
+				console.log("更新回调")
+				if(errA){
+					console.log(errA)
+					result.success=false;
+			result.message="更新用户信息失败";
+				}else{
+					console.log("修改成功")
+					result.success=true;
+					result.code=1
+					if(data.data.collectShop){
+						tokenArry[data.data.tk].user.collectShop=data.data.collectShop;
+					}
+					if(data.data.collectProduct){
+						tokenArry[data.data.tk].user.collectProduct=data.data.collectProduct;
+					}
+				}
+				returnFn();
+			})
+		}
+	})
+		}else{
+		result.success=false;
+		result.message="登录超时,请重新登录";
+		returnFn();
+		}	
+};
 /***************************************************************/
 exports.getPhoneCode=getPhoneCode;
 exports.visitGet=visitGet;
@@ -2491,3 +2569,4 @@ exports.companyListGet=companyListGet;
 exports.getShop=getShop;
 exports.editshopList=editshopList;
 exports.getShopList=getShopList;
+exports.collectEdit=collectEdit;

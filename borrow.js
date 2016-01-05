@@ -63,6 +63,63 @@ function get(socket,data,fn){
 	}	
 };
 
+function getSuccee(socket,data,fn){
+	console.log("borrow/getSuccee");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={
+					code:0,
+		time:0,
+		data:[],
+		success:false,
+		message:""
+					};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("borrow_getSuccee",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}	
+	}
+	//returnFn();
+	//return;
+
+		data_mg.updateTime.find({"parentKey":"borrow"},function(err,doc){
+		if(err){
+			result.success=false;
+			result.message="获取更新时间失败";
+			console.log(err);
+			returnFn();
+		}else{
+			if(doc&&doc.length&&doc[0].childKey>data.data.time){
+				result.code=1;
+				result.time=doc[0].childKey
+				data_mg.borrow.find({state:2},function(errA,docA){
+					if(errA){
+						result.success=false;
+						result.message="获取项目列表失败";
+						console.log(errA);
+					}else{
+						result.success=true;
+						result.data=docA;
+					}
+					returnFn();
+				});
+			}else{
+				console.log("没更新")
+				result.success=true;
+				result.code=2;
+				returnFn();
+			}
+		}
+	})
+
+};
+
 function getList(socket,data,fn){
 	console.log("borrow/getList");
 	if(typeof(data.data)=="string"){
@@ -156,6 +213,7 @@ function add(socket,data,fn){
 		var adminData = {
 		"id":uuid(),/*id*/
 		"user":tokenArry[data.data.tk].user.id,/*用户id*/
+		"image":tokenArry[data.data.tk].user.image,
 		"linkMan":data.data.linkMan||"",/*联系人*/
 		"birthday":data.data.birthday||0,/*生日*/
 		"workPlace":data.data.workPlace||"",/*工作地点*/
@@ -346,3 +404,4 @@ exports.add=add;
 exports.edit=edit;
 exports.editState=editState;
 exports.getList=getList;
+exports.getSuccee=getSuccee;
