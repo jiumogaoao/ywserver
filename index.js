@@ -166,42 +166,41 @@ var initDB=function(){
 			console.log("adminPass init");
 			totalCheck();
 			});
-		var addPromo0=new data_mg.promotion({"id":"00",
-		"name":"首页banner（一）",
-		"image":"img/pic.jpg",
-		"link":"http://www.baidu.com"})
+		var addPromo0=new data_mg.promotion({"any":{
+			banner:[],
+			bannerBottom:[],
+			object:{},
+			parner:[],
+			borrow:[]
+		}})
 		addPromo0.save(function(){
 			console.log("Promo0 init");
 			totalCheck();
 			});
 		var addPromo1=new data_mg.promotion({"id":"01",
-		"name":"首页banner（二）",
-		"image":"img/pic.jpg",
-		"link":"http://www.baidu.com"})
+		"name":"合作品牌",
+		"list":[]})
 		addPromo1.save(function(){
 			console.log("Promo1 init");
 			totalCheck();
 			});
 		var addPromo2=new data_mg.promotion({"id":"02",
-		"name":"首页banner（三）",
-		"image":"img/pic.jpg",
-		"link":"http://www.baidu.com"})
+		"name":"脚部二维码",
+		"list":[]})
 		addPromo2.save(function(){
 			console.log("Promo2 init");
 			totalCheck();
 			});
 		var addPromo3=new data_mg.promotion({"id":"03",
-		"name":"首页banner（四）",
-		"image":"img/pic.jpg",
-		"link":"http://www.baidu.com"})
+		"name":"商城轮播",
+		"list":[]})
 		addPromo3.save(function(){
 			console.log("Promo3 init");
 			totalCheck();
 			});
 		var addPromo4=new data_mg.promotion({"id":"04",
-		"name":"表格一（一）",
-		"image":"img/pic.jpg",
-		"link":"http://www.baidu.com"})
+		"name":"商城轮播下部",
+		"list":[]})
 		addPromo4.save(function(){
 			console.log("Promo4 init");
 			totalCheck();
