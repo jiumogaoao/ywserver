@@ -40,7 +40,7 @@ function get(socket,data,fn){
 									}else{
 										result.success=true;
 										result.code=1;
-										result.data=docC;
+										result.data=docC[0].any;
 										returnFn()
 									}
 								})
@@ -75,15 +75,16 @@ function edit(socket,data,fn){
 	 		fn(returnString);
 	 	}
 	}
-	/*if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){*/
-	var lock=1;
-	var callBackCount=0;
-	var errSend=1;
-	var callBackFn=function(){
-			if(lock){
-				callBackCount++;
-				if(callBackCount==data.data.list.length){
-					console.log("更新时间")
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
+
+		data_mg.promotion.update({},{$set:{"any":data.data.any}},{},function(err){
+			if(err){
+				console.log(err)
+				lock=0;
+				result.success=false;
+				result.message="修改宣传失败";
+				returnFn();
+			}else{
 				data_mg.updateTime.update({"parentKey":"promotion"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
 					if(errA){console.log(errA)
 						result.success=false;
@@ -94,41 +95,14 @@ function edit(socket,data,fn){
 					}
 					returnFn()
 				})
-			
-					}
-				}else{
-					if(errSend){
-						errSend=0;
-						returnFn();
-						}
-					}
-		}
-		console.log("更新宣传")
-		for(var i=0;i<data.data.list.length;i++){
-			if(lock){
-				data_mg.promotion.update({"id":data.data.list[i].id},{$set:data.data.list[i]},{},function(err){
-			if(err){
-				console.log(err)
-				lock=0;
-				result.success=false;
-				result.message="修改宣传失败";
-			}else{
-				callBackFn();
 				}
 			})
-				}
-		}
-		
-
 	
-		/*}else{
+		}else{
 		result.success=false;
 				result.message="登陆信息超时,或不是管理员帐号";
 				returnFn();
-		}*/
-
-	
-	
+		}
 		
 };
 

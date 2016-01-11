@@ -81,46 +81,22 @@ var initDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==11){
+			if(totalCount==8){
 				showDB();
 				}
 			}
 		var addConfig=new data_mg.config({
 		any:{
-		footerInfo:{
-			titleText:"全国首家专业房地产众筹平台",
-			slogan:"人人参与  创新投资",
-			mobile:"（021）6181-3682",
-			fax:"（021）6181-3682",
-			time:"（周一至周五 10:00-18:30）",
-			number:"400-661-3350",
-	      companyName:"上海中筹互联网金融信息服务有限公司",
-		  referredToAs:"",
-		  companyUrl:"",
-	      cooperationEmail:"biz@cncrowd.com",
-		  recruitmentEmail:"biz@cncrowd.com",
-		  address:["地址：上海市长宁区延安西路1118号","龙之梦大厦2202室&nbsp;&nbsp;&nbsp;&nbsp;","200052"],
-	      copRight:"©2014 CNCrowd",
-		  record:" 沪ICP备14044695号-1",
-	      nav:[{id:"mode",name:"中筹模式"},{id:"product",name:"我要众筹"},{id:"procedure",name:"众筹步聚"},{id:"FAQS",name:"常见问题"},{id:"about",name:"关于我们"}],
-	      conText_0:"为全国首家专业房地产众筹平台",
-	      conText_1:"致力于通过互联网金融的创新",
-	      conText_2:"推动传统房地产投融资模式的变革和创新"
-         },
-         earnings:{
-           titleText:"高收益从何而来",
-           dsc:"高收益来自于对市场的深度判断和有力操控",
-           earningsRateTitle:"收益率",
-           earningsRate:"15%",
-           steps:["开始众筹","风险把控","资产来源","每份100元","众筹获利","增值管理","溢价出售"],
-           title_2:"众筹",
-           image:"images/slide_01.png"
-         },
-		 logo:"img/headerLogo.jpg",
-		 more:"1",
-		 change:"1",
-         button:[[{id:"login",name:"登录"},{id:"register",name:"注册"}],[{id:"zone",name:"用户中心"},{id:"out",name:"退出"}],[{id:"out",name:"退出"}]],
-         nav:[{id:"mode",name:"众筹模式"},{id:"product",name:"我要众筹"},{id:"procedure",name:"众筹步聚"},{id:"FAQS",name:"常见问题"},{id:"about",name:"关于我们"}]
+			logo:"img/name.png",
+			name:"星众筹",
+			phone:"400-816-5151[24h]",
+			mail:"51service@51wofang.com",
+			businessMail:"51bd@51wofang.com",
+			place:"北京市东城区万国城MOMA8号楼3楼",
+			wx:"img/qr.png",
+			wb:"img/qr.png",
+			icp:"京ICP备15017470号-2",
+			host:"2016 51wofang.com"
 		}
      })
 	 	addConfig.save(
@@ -166,37 +142,14 @@ var initDB=function(){
 			console.log("adminPass init");
 			totalCheck();
 			});
-		var addPromo0=new data_mg.promotion({"id":"001","name":"首页轮播","list":[]})
+		var addPromo0=new data_mg.promotion({"any":{
+			"001":{"id":"001","name":"商城轮播","list":{}},
+			"002":{"id":"002","name":"商城轮播底部","list":{}},
+			"003":{"id":"003","name":"合作伙伴","list":{}},
+			"004":{"id":"004","name":"借贷首页","list":{}}
+		}})
 		addPromo0.save(function(){
-			console.log("Promo0 init");
-			totalCheck();
-			});
-		var addPromo1=new data_mg.promotion({"id":"002",
-		"name":"首页轮播底部",
-		"list":[]})
-		addPromo1.save(function(){
-			console.log("Promo1 init");
-			totalCheck();
-			});
-		var addPromo2=new data_mg.promotion({"id":"003",
-		"name":"合作伙伴",
-		"list":[]})
-		addPromo2.save(function(){
-			console.log("Promo2 init");
-			totalCheck();
-			});
-		var addPromo3=new data_mg.promotion({"id":"004",
-		"name":"借贷首页",
-		"list":[]})
-		addPromo3.save(function(){
-			console.log("Promo3 init");
-			totalCheck();
-			});
-		var addPromo4=new data_mg.promotion({"id":"04",
-		"name":"商城轮播下部",
-		"list":[]})
-		addPromo4.save(function(){
-			console.log("Promo4 init");
+			console.log("Promo init");
 			totalCheck();
 			});
 		var addObj0=new data_mg.obj({list:[]})
@@ -205,6 +158,7 @@ var initDB=function(){
 			totalCheck();
 			});
 		/****************************************************************************/
+
 		var addproductT=new data_mg.updateTime({"parentKey":"product","childKey":0})
 		addproductT.save(function(){
 			console.log("productTime init");
@@ -261,7 +215,7 @@ var emptyDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==17){
+			if(totalCount==18){
 				initDB();
 				}
 			}
@@ -333,9 +287,13 @@ var emptyDB=function(){
 			console.log("borrow empty");
 			totalCheck();
 			});
+		data_mg.deal.remove({},function(){
+			console.log("deal empty");
+			totalCheck();
+			});
 }
-	//emptyDB();
-	showDB();
+	emptyDB();
+	//showDB();
 /***********************************************************************************/	
  	 var io = require('socket.io').listen(app.target)
 app.target.listen(8888);

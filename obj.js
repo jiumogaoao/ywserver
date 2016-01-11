@@ -96,12 +96,66 @@ function edit(socket,data,fn){
 						result.success=false;
 						result.message="更新时间出错";
 						console.log(errA)
-						result.code=0
+						result.code=0;
+						returnFn();
 					}else{
-						result.success=true;
-						result.code=1
+						data_mg.promotion.find({},function(errPomo,pomoArry){
+							if(errPomo){
+								console.log(errPomo);
+								result.success=false;
+								result.message="获取广告信息失败";
+								returnFn();
+							}else{
+
+								var pomo=pomoArry[0].any;
+								var newPomo={
+									"001":pomo["001"],
+									"002":pomo["002"],
+									"003":pomo["003"],
+									"004":pomo["004"]
+								}
+								for (var i=0;i<data.data.obj.length;i++){
+									if(data.data.obj[i].parentId=="all"){
+										if(pomo[data.data.obj[i].id+"_A"]){
+											newPomo[data.data.obj[i].id+"_A"]=pomo[data.data.obj[i].id+"_A"];
+										}else{
+											newPomo[data.data.obj[i].id+"_A"]={"id":data.data.obj[i].id+"_A","name":data.data.obj[i].name+"品牌","list":{}}
+										}
+										if(pomo[data.data.obj[i].id+"_B"]){
+											newPomo[data.data.obj[i].id+"_B"]=pomo[data.data.obj[i].id+"_B"];
+										}else{
+											newPomo[data.data.obj[i].id+"_B"]={"id":data.data.obj[i].id+"_B","name":data.data.obj[i].name+"推广","list":{}}
+										}
+									}
+								}
+								data_mg.promotion.update({},{$set:{"any":newPomo}},{},function(e){
+									if(e){
+										console.log(e);
+										result.success=false;
+										result.message="修改广告信息失败";
+										returnFn();
+									}else{
+										data_mg.updateTime.update({"parentKey":"promotion"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
+											if(errA){
+												result.success=false;
+												result.message="更新时间出错";
+												console.log(errA)
+												result.code=0;
+												
+											}else{
+												result.success=true;
+												result.code=1;
+											}
+											returnFn();
+										});
+										
+									}
+									
+								})
+							}
+						});
 					}
-					returnFn()
+					
 				})
 			}
 			

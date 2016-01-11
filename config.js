@@ -18,6 +18,10 @@ function get(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log("找更新")
 	data_mg.updateTime.find({"parentKey":"config"},function(err,doc){
 		if(err){
 			console.log(err)
@@ -25,9 +29,14 @@ function get(socket,data,fn){
 			result.message="获取更新时间失败"
 			returnFn()
 			}else{
-				if(doc&&doc.length&&doc[0].childKey>data.data.time){
+				console.log("找到了")
+				console.log(doc)
+				console.log(doc[0].childKey)
+				console.log(data.data.time)
+				if(doc&&doc.length&&Number(doc[0].childKey)>data.data.time){
+					console.log("有更新")
 					result.time=doc[0].childKey;
-					data_mg.config.findOne({},function(errA,docA){
+					data_mg.config.find({},function(errA,docA){
 						console.log(docA)
 						if(errA){
 							console.log(errA)
@@ -36,7 +45,7 @@ function get(socket,data,fn){
 							}else{
 								result.success=true;
 								result.code=1;
-								result.data=docA.any
+								result.data=docA[0].any
 								}
 							returnFn()
 						})
@@ -55,7 +64,7 @@ function get(socket,data,fn){
 function edit(socket,data,fn){
 	console.log("config/edit");
 	if(typeof(data.data)=="string"){
-		data.data={any:JSON.parse(data.data)}
+		data.data=JSON.parse(data.data);
 		}
 		console.log(data.data)
 	var result={code:0,
@@ -72,9 +81,9 @@ function edit(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-		if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){
+		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
 			console.log("更新配置")
-	data_mg.config.update({},{$set:data.data},{},function(err){
+	data_mg.config.update({},{$set:{"any":data.data.any}},{},function(err){
 		if(err){console.log(err)
 			result.success=false;
 			result.message="修改失败"
