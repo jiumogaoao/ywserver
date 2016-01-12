@@ -126,6 +126,11 @@ function edit(socket,data,fn){
 										}else{
 											newPomo[data.data.obj[i].id+"_B"]={"id":data.data.obj[i].id+"_B","name":data.data.obj[i].name+"推广","list":{}}
 										}
+										if(pomo[data.data.obj[i].id+"_C"]){
+											newPomo[data.data.obj[i].id+"_C"]=pomo[data.data.obj[i].id+"_C"];
+										}else{
+											newPomo[data.data.obj[i].id+"_C"]={"id":data.data.obj[i].id+"_C","name":data.data.obj[i].name+"大图","list":{}}
+										}
 									}
 								}
 								data_mg.promotion.update({},{$set:{"any":newPomo}},{},function(e){
