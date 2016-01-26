@@ -16,7 +16,9 @@ var app = require('./server')
 	  obj : require('./obj'),
 	  type : require('./type'),
 	  com : require('./com'),
-	  borrow : require('./borrow')
+	  borrow : require('./borrow'),
+	  message: require('./message'),
+	  broadcast: require('./broadcast')
    }
 /**********************************************************************************/
    var dbURL="mongodb://127.0.0.1:27017/xiaoyiwo"
@@ -43,6 +45,8 @@ var app = require('./server')
 	  data_mg.count = require('./data/models/count');//数据统计表
 	  data_mg.company = require('./data/models/company');//企业信息表
 	  data_mg.borrow=require('./data/models/borrow');//借贷表
+	  data_mg.broadcast=require('./data/models/broadcast');//公告表
+	  data_mg.message=require('./data/models/message');//对话表
 /***********************************************************************************/
 	global.uuid=function(){
 		return 'xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -81,7 +85,7 @@ var initDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==8){
+			if(totalCount==10){
 				showDB();
 				}
 			}
@@ -105,11 +109,24 @@ var initDB=function(){
 			totalCheck();
 			}
 		)
-	 	var configUP=new data_mg.updateTime({"parentKey":"config","childKey":new Date().getTime()})
+	 	var configUP=new data_mg.updateTime({"parentKey":"config","childKey":0})
 	    configUP.save(function(){
 			console.log("configTime init");
 			totalCheck();
 			});
+
+		var messageUP=new data_mg.updateTime({"parentKey":"message","childKey":0})
+	    messageUP.save(function(){
+			console.log("messageTime init");
+			totalCheck();
+			});
+
+	    var broadcastUP=new data_mg.updateTime({"parentKey":"broadcast","childKey":0})
+	    broadcastUP.save(function(){
+			console.log("broadcastTime init");
+			totalCheck();
+			});
+
 		var newTotal=new data_mg.count({
 		"name":"totalView",//图片id
 		"number":0,//路径

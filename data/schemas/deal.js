@@ -14,6 +14,9 @@ var MemberSchema = new mongoose.Schema({
 		"star":Number,/*评分*/
 		"com":String,/*评价*/
 		"comTime":Number,/*评价时间*/
-		"totalPrice":Number/*总价*/
+		"totalPrice":Number,/*总价*/
+		"dealName":String,
+		"dealPhone":String,
+		"dealPlace":String
 	})
 module.exports = MemberSchema;

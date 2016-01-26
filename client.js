@@ -328,7 +328,8 @@ function register(socket,data,fn){
 		"visit":0,
 		"realName":0,/*实名认证，0未认证，1已认证*/
 		"card":0,/*银行卡认证，0未认证，1已认证*/
-		"company":0/*企业信息认证，0未认证，1已认证*/
+		"company":0,/*企业信息认证，0未认证，1已认证*/
+		"shop":0/*店铺信息认证，0未认证，1已认证*/
 		}
 	var result={
 		success:false,
@@ -437,7 +438,7 @@ function register(socket,data,fn){
 													"linkMan":"",/*联系人*/
 													"linkPhone":"",/*联系电话*/
 													"cardNumber":"",/*营业执照号*/
-													"state":1
+													"state":0
 													});
 													newCompany.save(function(companyErr){
 														if(companyErr){
@@ -1749,15 +1750,19 @@ function companyCheck(socket,data,fn){
 				result.message="修改审核状态错误";
 				returnFn();
 			}else{
-				data_mg.client.update({id:data.data.id},{$set:{"type":3}},{},function(errA){
+				var editData={company:1};
+				data_mg.client.findOne({id:data.data.id},function(errA,user){
 					if(errA){
 						console.log(errA);
 						result.success=false;
 						result.code=0;
-						result.message="修改商户状态失败";
+						result.message="获取商户信息失败";
 						returnFn();
 					}else{
-						data_mg.client.update({id:data.data.id},{$set:{company:1}},{},function(errA){
+						if(user.shop){
+							editData.type=3;
+						}
+						data_mg.client.update({id:data.data.id},{$set:editData},{},function(errA){
 					if(errA){
 						console.log(errA);
 						result.success=false;
@@ -2094,32 +2099,39 @@ function accountIn(socket,data,fn){
 	 	}
 		}
 		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
-			var newIn=new data_mg.account({"id":uuid(),/*id*/
-		"userid":tokenArry[data.data.tk].user.id,/*帐号*/
-		"money":data.data.number,/*金额*/
-		"type":"0",/*0充值1提现*/
-		"time":new Date().getTime(),/*时间*/
-		"state":"1"/*0进行中1已完成*/});
-			newIn.save(function(err){
-				if(err){
-					console.log(err);
-					result.success=false;
-					result.message="充值提交失败";
-					returnFunction();
-				}else{
-					data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$inc:{balance:data.data.number}},{},function(errA){
-						if(errA){
-							console.log(errA);
+			if(tokenArry[data.data.tk].user.realName&&tokenArry[data.data.tk].user.card){
+				var newIn=new data_mg.account({"id":uuid(),/*id*/
+				"userid":tokenArry[data.data.tk].user.id,/*帐号*/
+				"money":data.data.number,/*金额*/
+				"type":"0",/*0充值1提现*/
+				"time":new Date().getTime(),/*时间*/
+				"state":"1"/*0进行中1已完成*/});
+					newIn.save(function(err){
+						if(err){
+							console.log(err);
 							result.success=false;
-							result.message="修改金额失败";
+							result.message="充值提交失败";
+							returnFunction();
 						}else{
-							result.success=true;
-							result.code=1;
+							data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$inc:{balance:data.data.number}},{},function(errA){
+								if(errA){
+									console.log(errA);
+									result.success=false;
+									result.message="修改金额失败";
+								}else{
+									result.success=true;
+									result.code=1;
+								}
+								returnFunction();
+							})
 						}
-						returnFunction();
-					})
+					});
+				}else{
+					console.log("实名制信息未验证或银行卡未验证");
+					result.success=false;
+					result.message="实名制信息未验证或银行卡未验证";
+					returnFunction();
 				}
-			});
 		}else{
 			console.log("登录信息超时")
 			result.success=false;
@@ -2157,6 +2169,7 @@ function accountOut(socket,data,fn){
 		}
 		console.log("开始")
 		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+			if(tokenArry[data.data.tk].user.realName&&tokenArry[data.data.tk].user.card){
 			data_mg.client.findOne({id:tokenArry[data.data.tk].user.id},function(err,user){
 				if(err){
 					console.log(err);
@@ -2207,7 +2220,12 @@ function accountOut(socket,data,fn){
 					
 				}
 			})
-			
+			}else{
+				console.log("实名制信息未验证或银行卡未验证")
+				result.success=false;
+				result.message="实名制信息未验证或银行卡未验证";
+				returnFunction();
+			}
 		}else{
 			console.log("登录信息超时")
 			result.success=false;
@@ -2533,6 +2551,72 @@ function collectEdit(socket,data,fn){
 		returnFn();
 		}	
 };
+/************************************************************************************************/
+function shopCheck(socket,data,fn){
+	console.log("client/shopCheck");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_shopCheck",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+	}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
+
+				var editData={shop:1};
+				data_mg.client.findOne({id:data.data.id},function(errA,user){
+					if(errA){
+						console.log(errA);
+						result.success=false;
+						result.code=0;
+						result.message="获取商户信息失败";
+						returnFn();
+					}else{
+						if(user.company){
+							editData.type=3;
+						}
+						data_mg.client.update({id:data.data.id},{$set:editData},{},function(errA){
+					if(errA){
+						console.log(errA);
+						result.success=false;
+						result.message="修改用户信息错误";
+						returnFn();
+					}else{
+						data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(errC){
+								if(errC){
+									console.log(errC);
+									result.success=false;
+									result.message="更新企业状态失败";
+								}else{
+									console.log("修改成功")
+									result.success=true;
+									result.code=1;
+								}
+								returnFn();
+							})
+					}
+				});	
+					}
+				});
+	
+	}else{
+		result.success=false;
+		result.code=0;
+		result.message="未登录或不是管理员帐号";
+		returnFn();
+	}
+}
 /***************************************************************/
 exports.getPhoneCode=getPhoneCode;
 exports.visitGet=visitGet;
@@ -2570,3 +2654,4 @@ exports.getShop=getShop;
 exports.editshopList=editshopList;
 exports.getShopList=getShopList;
 exports.collectEdit=collectEdit;
+exports.shopCheck=shopCheck;

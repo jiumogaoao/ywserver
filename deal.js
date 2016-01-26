@@ -315,7 +315,9 @@ function pay(socket,data,fn){
 							result.message="扣费错误";
 							returnFn();
 						}else{
-							data_mg.deal.update({id:data.data.id},{$set:{state:1}},{},function(errDeal){
+							data_mg.deal.update({id:data.data.id},{$set:{state:1,"dealName":data.data.dealName,
+								"dealPhone":data.data.dealPhone,
+								"dealPlace":data.data.dealPlace}},{},function(errDeal){
 								if(errDeal){
 									console.log(errDeal)
 									result.success=false;

@@ -26,6 +26,7 @@ var MemberSchema = new mongoose.Schema({
 		"realName":Number,/*实名认证，0未认证，1已认证*/
 		"card":Number,/*银行卡认证，0未认证，1已认证*/
 		"company":Number,/*企业信息认证，0未认证，1已认证*/
+		"shop":Number,/*店铺信息认证，0未认证，1已认证*/
 		"collectShop":{},/*店铺收藏*/
 		"collectProduct":{},/*商品收藏*/
 		"wantOpen":Number
